@@ -1,0 +1,59 @@
+<odoo>
+    <data>
+
+        <!-- FORM -->
+        <record id="view_khach_hang_form" model="ir.ui.view">
+            <field name="name">khach_hang.form</field>
+            <field name="model">khach_hang</field>
+            <field name="arch" type="xml">
+                <form string="Khách hàng">
+                    <sheet>
+                        <group col="2">
+                            <field name="ten_khach_hang"/>
+                            <field name="ma_khach_hang"/>
+                            <field name="loai_khach_hang_id"/>
+                            <field name="dien_thoai"/>
+                            <field name="email"/>
+                            <field name="dia_chi"/>
+                        </group>
+                        <group>
+                            <field name="ghi_chu"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- TREE -->
+        <record id="view_khach_hang_tree" model="ir.ui.view">
+            <field name="name">khach_hang.tree</field>
+            <field name="model">khach_hang</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="ten_khach_hang"/>
+                    <field name="loai_khach_hang_id"/>
+                    <field name="dien_thoai"/>
+                    <field name="email"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- ACTION -->
+        <record id="action_khach_hang" model="ir.actions.act_window">
+            <field name="name">Khách hàng</field>
+            <field name="res_model">khach_hang</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        <record id="view_khach_hang_search" model="ir.ui.view">
+            <field name="name">khach_hang.search</field>
+            <field name="model">khach_hang</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="ten_khach_hang"/>
+                    <field name="ma_khach_hang"/>
+                    <field name="loai_khach_hang_id"/>
+                </search>
+            </field>
+        </record>           
+    </data>
+</odoo>

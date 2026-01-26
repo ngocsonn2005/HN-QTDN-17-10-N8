@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_khach_hang_tiem_nang_form" model="ir.ui.view">
+            <field name="name">khach_hang_tiem_nang</field>
+            <field name="model">khach_hang_tiem_nang</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_read_only" style="font-size:25px">Khách hàng tiềm năng</div>
+                        <group col="4" string="Thông tin chung">
+                            <field name="giai_doan"/>
+                            <field name="doanh_thu_tiem_nang"/>
+                            <field name="ngay_du_kien_ky_hop_dong"/>
+                            <field name="ngay_tao"/>
+                            <field name="ngay_cap_nhat"/>
+                            <field name="khach_hang_id"/>
+                        </group>
+                        <notebook>
+                            <page string="Hoạt động">
+                                <!-- 👇 THAY THẾ BẰNG FIELD TEXT -->
+                                <field name="hoat_dong_mo_ta"/>
+                            </page>
+                            <page string="Hợp đồng">
+                                <!-- 👇 THAY THẾ BẰNG FIELD TEXT -->
+                                <field name="hop_dong_mo_ta"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_khach_hang_tiem_nang_tree" model="ir.ui.view">
+            <field name="name">khach_hang_tiem_nang</field>
+            <field name="model">khach_hang_tiem_nang</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="giai_doan"/>
+                    <field name="doanh_thu_tiem_nang"/>
+                    <field name="ngay_du_kien_ky_hop_dong"/>
+                    <field name="ngay_tao"/>
+                    <field name="ngay_cap_nhat"/>
+                    <field name="khach_hang_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="khach_hang_tiem_nang_search">
+            <field name="model">khach_hang_tiem_nang</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="giai_doan"/>
+                    <field name="doanh_thu_tiem_nang"/>
+                    <field name="ngay_du_kien_ky_hop_dong"/>
+                    <field name="ngay_tao"/>
+                    <field name="ngay_cap_nhat"/>
+                    <field name="khach_hang_id"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_khach_hang_tiem_nang" model="ir.actions.act_window">
+            <field name="name">Khách hàng tiềm năng</field>
+            <field name="res_model">khach_hang_tiem_nang</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="khach_hang_tiem_nang_search"/>
+        </record>
+    </data>
+</odoo>

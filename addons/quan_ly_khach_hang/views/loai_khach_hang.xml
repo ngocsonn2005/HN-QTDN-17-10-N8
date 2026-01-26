@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree view cho loai_khach_hang -->
+    <record id="view_loai_khach_hang_tree" model="ir.ui.view">
+        <field name="name">loai_khach_hang.tree</field>
+        <field name="model">loai_khach_hang</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="mo_ta"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form view cho loai_khach_hang -->
+    <record id="view_loai_khach_hang_form" model="ir.ui.view">
+        <field name="name">loai_khach_hang.form</field>
+        <field name="model">loai_khach_hang</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="mo_ta"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action cho loai_khach_hang -->
+    <record id="action_loai_khach_hang" model="ir.actions.act_window">
+        <field name="name">Loại khách hàng</field>
+        <field name="res_model">loai_khach_hang</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo loại khách hàng đầu tiên</p>
+        </field>
+    </record>
+</odoo>

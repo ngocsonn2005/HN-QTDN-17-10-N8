@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Menu gốc cho module khách hàng -->
+        <menuitem id="menu_khach_hang_root"
+                  name="Khách hàng"
+                  sequence="30"/>
+        
+        <!-- Menu loại khách hàng -->
+        <menuitem id="menu_loai_khach_hang"
+                  name="Loại khách hàng"
+                  parent="menu_khach_hang_root"
+                  action="action_loai_khach_hang"
+                  sequence="10"/>
+        
+        <!-- Menu danh sách khách hàng -->
+        <menuitem id="menu_danh_sach_khach_hang"
+                  name="Danh sách khách hàng"
+                  parent="menu_khach_hang_root"
+                  action="action_khach_hang"
+                  sequence="20"/>
+        <!-- Menu hỗ trợ khách hàng -->
+        <menuitem id="menu_ho_tro_khach_hang"
+                  name="Hỗ trợ khách hàng"
+                  parent="menu_khach_hang_root"
+                  action="action_ho_tro_khach_hang"
+                  sequence="30"/>
+        <!-- Menu thống kê hỗ trợ nhân viên -->
+        <menuitem id="menu_thong_ke_ho_tro_nhan_vien"
+                  name="Thống kê hỗ trợ nhân viên"
+                  parent="menu_khach_hang_root"
+                  action="action_thong_ke_ho_tro_nhan_vien"
+                  sequence="40"/>
+        <!-- Menu khách hàng tiềm năng -->
+        <menuitem id="menu_khach_hang_tiem_nang"
+                    name="Khách hàng tiềm năng"
+                    parent="menu_khach_hang_root"
+                    action="action_khach_hang_tiem_nang"
+                    sequence="50"/>
+    </data>
+</odoo>

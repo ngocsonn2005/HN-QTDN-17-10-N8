@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "nhan_su",
+    'name': "quan_ly_van_ban",
 
     'summary': """
         Short (1 phrase/line) summary of the module's purpose, used as
@@ -10,8 +10,8 @@
         Long description of module's purpose
     """,
 
-    'author': "My Company",
-    'website': "http://www.yourcompany.com",
+    'author': "FIT-DNU",
+    'website': "https://ttdn1501.aiotlabdnu.xyz/web",
 
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/15.0/odoo/addons/base/data/ir_module_category_data.xml
@@ -20,24 +20,18 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base'],
+    'depends': ['base', 'nhan_su'],
 
     # always loaded
     'data': [
         'security/ir.model.access.csv',
-        'views/chuc_vu.xml',
-        'views/don_vi.xml',
-        'views/nhan_vien.xml',
-        'views/lich_su_cong_tac.xml',
-        'views/chung_chi_bang_cap.xml',
-        'views/danh_sach_chung_chi_bang_cap.xml',
+        'views/van_ban_den.xml',
+        'views/van_ban_di.xml',
+        'views/loai_van_ban.xml',
         'views/menu.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',
     ],
-    'installable': True,
-    'application': True,
-    'auto_install': False,
 }

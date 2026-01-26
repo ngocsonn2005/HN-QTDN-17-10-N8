@@ -20,7 +20,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base'],
+    'depends': ['base', 'nhan_su', 'quan_ly_khach_hang'],
 
     # always loaded
     'data': [
@@ -34,4 +34,7 @@
     'demo': [
         'demo/demo.xml',
     ],
+    'installable': True,
+    'application': True,
+    'auto_install': False,
 }
