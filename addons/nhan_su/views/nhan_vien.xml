@@ -15,21 +15,33 @@
                             <field name="ma_dinh_danh"/>
                             <field name="ngay_sinh"/>
                             <field name="tuoi"/>
-                            <field name="so_nguoi_bang_tuoi"/>
+                            <!-- TẠM THỜI COMMENT FIELD NÀY -->
+                            <!-- <field name="so_nguoi_bang_tuoi" readonly="1"/> -->
                             <field name="que_quan"/>
                             <field name="email"/>
+                            <field name="so_dien_thoai"/>
                             <field name="anh" widget="image"/>
                         </group>
                         <notebook>
                             <page string="Danh sách lịch sử công tác">
-                                <field name="lich_su_cong_tac_ids"/>
+                                <field name="lich_su_cong_tac_ids">
+                                    <tree>
+                                        <field name="chuc_vu_id"/>
+                                        <field name="don_vi_id"/>
+                                        <field name="loai_chuc_vu"/>
+                                    </tree>
+                                </field>
                             </page>
                             <page string="Danh sách chứng chỉ bằng cấp">
-                                <field name="danh_sach_chung_chi_bang_cap_ids"/>
+                                <field name="danh_sach_chung_chi_bang_cap_ids">
+                                    <tree>
+                                        <field name="chung_chi_bang_cap_id"/>
+                                        <field name="ghi_chu"/>
+                                    </tree>
+                                </field>
                             </page>
                         </notebook>
                     </sheet>
-                    
                 </form>
             </field>
         </record>
@@ -45,7 +57,7 @@
                     <field name="ho_va_ten"/>
                     <field name="ngay_sinh"/>
                     <field name="tuoi"/>
-                    <field name="so_nguoi_bang_tuoi"/>
+                    <!-- <field name="so_nguoi_bang_tuoi"/> -->
                     <field name="que_quan"/>
                     <field name="email"/>
                 </tree>
@@ -70,8 +82,7 @@
             <field name="name">Nhân viên</field>
             <field name="res_model">nhan_vien</field>
             <field name="view_mode">tree,form</field>
-            <field name="search_view_id" ref = "nhan_vien_search"/>
+            <field name="search_view_id" ref="nhan_vien_search"/>
         </record>
     </data>
 </odoo>
-        

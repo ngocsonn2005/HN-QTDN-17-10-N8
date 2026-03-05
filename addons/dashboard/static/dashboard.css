@@ -1,0 +1,166 @@
+.o_dashboard {
+    padding: 25px;
+    background-color: #f8f9fc;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+}
+
+.o_dashboard h2 {
+    color: #2e3b4e;
+    font-weight: 600;
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+    border-left: 5px solid #4e73df;
+    padding-left: 20px;
+}
+
+/* Card container */
+.dashboard-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+}
+
+.dashboard-card .card-header {
+    font-weight: 600;
+    font-size: 1.2rem;
+    padding: 15px 20px;
+    border-bottom: none;
+    letter-spacing: 0.5px;
+}
+
+.dashboard-card .card-body {
+    padding: 20px;
+    background-color: white;
+}
+
+.dashboard-card .stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #edf2f9;
+}
+
+.dashboard-card .stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #2e3b4e;
+}
+
+.stat-value.small {
+    font-size: 1.1rem;
+}
+
+/* Card header colors */
+.bg-primary-gradient {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+}
+
+.bg-success-gradient {
+    background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+    color: white;
+}
+
+.bg-warning-gradient {
+    background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+    color: white;
+}
+
+.bg-info-gradient {
+    background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+    color: white;
+}
+
+/* Button AI */
+.btn-ai {
+    background: linear-gradient(135deg, #4e73df, #224abe);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 12px 30px;
+    border-radius: 50px;
+    box-shadow: 0 4px 10px rgba(78, 115, 223, 0.4);
+    transition: all 0.3s;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+    margin: 5px;
+}
+
+.btn-ai:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(78, 115, 223, 0.5);
+    color: white;
+}
+
+.btn-ai-outline {
+    background: transparent;
+    border: 2px solid #4e73df;
+    color: #4e73df;
+    font-weight: 600;
+    padding: 10px 25px;
+    border-radius: 50px;
+    transition: all 0.3s;
+}
+
+.btn-ai-outline:hover {
+    background: #4e73df;
+    color: white;
+}
+
+/* Grid layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .o_dashboard {
+        padding: 15px;
+    }
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Icon styling */
+.stat-icon {
+    font-size: 2rem;
+    margin-right: 15px;
+    opacity: 0.8;
+}
+
+/* Badge cho trạng thái (nếu dùng sau) */
+.badge-ai {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+.badge-very-high { background: #dc3545; color: white; }
+.badge-high { background: #fd7e14; color: white; }
+.badge-normal { background: #28a745; color: white; }
+.badge-low { background: #6c757d; color: white; }

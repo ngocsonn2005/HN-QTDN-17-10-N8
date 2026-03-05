@@ -10,6 +10,8 @@ class VanBanDi(models.Model):
     so_hieu_van_ban = fields.Char("Số hiệu văn bản", required=True)
     noi_nhan = fields.Char("Nơi nhận")
 
+    ngay_van_ban = fields.Date(string="Ngày văn bản", required=True, default=fields.Date.today)
+
     loai_van_ban_id = fields.Many2one(
         'loai_van_ban',
         string='Loại văn bản',

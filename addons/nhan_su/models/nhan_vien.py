@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from odoo import models, fields, api
 from datetime import date
 from odoo.exceptions import ValidationError
@@ -42,14 +43,11 @@ class NhanVien(models.Model):
         string="Danh sách chứng chỉ bằng cấp"
     )
 
-    so_nguoi_bang_tuoi = fields.Integer(
-        "Số người bằng tuổi",
-        compute="_compute_so_nguoi_bang_tuoi",
-        store=True
-    )
-
-
-    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # TẠM THỜI COMMENT FIELD NÀY ĐỂ KIỂM TRA
+    # so_nguoi_bang_tuoi = fields.Integer(
+    #     "Số người bằng tuổi",
+    #     default=0
+    # )
 
     _sql_constraints = [
         ('ma_dinh_danh_unique',
@@ -69,32 +67,37 @@ class NhanVien(models.Model):
     def _compute_tuoi(self):
         for record in self:
             if record.ngay_sinh:
-                record.tuoi = date.today().year - record.ngay_sinh.year
+                today = date.today()
+                birth_date = fields.Date.from_string(record.ngay_sinh)
+                age = today.year - birth_date.year
+                # Kiểm tra nếu chưa đến sinh nhật trong năm nay
+                if today.month < birth_date.month or (today.month == birth_date.month and today.day < birth_date.day):
+                    age -= 1
+                record.tuoi = age
             else:
                 record.tuoi = 0
-
-    @api.depends("tuoi")
-    def _compute_so_nguoi_bang_tuoi(self):
-        for record in self:
-            if record.tuoi:
-                records = self.env['nhan_vien'].search([
-                    ('tuoi', '=', record.tuoi),
-                    ('id', '!=', record.id)
-                ])
-                record.so_nguoi_bang_tuoi = len(records)
-            else:
-                record.so_nguoi_bang_tuoi = 0
 
     # ================= ONCHANGE =================
 
     @api.onchange("ten", "ho_ten_dem")
-    def _default_ma_dinh_danh(self):
+    def _onchange_ma_dinh_danh(self):
         for record in self:
             if record.ho_ten_dem and record.ten:
                 chu_cai_dau = ''.join(
                     [tu[0] for tu in record.ho_ten_dem.lower().split()]
                 )
                 record.ma_dinh_danh = record.ten.lower() + chu_cai_dau
+
+    # TẠM THỜI COMMENT ONCHANGE NÀY
+    # @api.onchange("ngay_sinh")
+    # def _onchange_ngay_sinh(self):
+    #     if self.ngay_sinh:
+    #         today = date.today()
+    #         birth_date = fields.Date.from_string(self.ngay_sinh)
+    #         age = today.year - birth_date.year
+    #         if today.month < birth_date.month or (today.month == birth_date.month and today.day < birth_date.day):
+    #             age -= 1
+    #         self.tuoi = age
 
     # ================= CONSTRAINT =================
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tạo menu cha trước -->
+    <menuitem 
+        id="menu_dashboard_root" 
+        name="Dashboard" 
+        sequence="5"/>
+    
+    <record id="action_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard AI</field>
+        <field name="tag">dashboard</field>
+        <field name="target">main</field>
+    </record>
+
+    <menuitem 
+        id="menu_dashboard" 
+        name="Dashboard AI" 
+        parent="menu_dashboard_root"
+        action="action_dashboard" 
+        sequence="10"/>
+</odoo>

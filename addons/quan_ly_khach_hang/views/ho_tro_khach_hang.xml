@@ -64,7 +64,9 @@
     </record>
 
     <!-- Menu Hiển Thị -->
-    <menuitem id="menu_ho_tro_khach_hang" name="Hỗ trợ khách hàng"
+    <menuitem id="menu_ho_tro_khach_hang" 
+              name="Hỗ trợ khách hàng"
               action="action_ho_tro_khach_hang"
-              parent="base.menu_management"/>
+              parent="menu_khach_hang_root"
+              sequence="35"/>
 </odoo>

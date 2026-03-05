@@ -6,7 +6,8 @@ class ThongKeHoTroNhanVien(models.Model):
     _description = 'Thống kê hỗ trợ nhân viên'
     _rec_name = 'nhan_vien_id'
 
-    nhan_vien_id = fields.Many2one('res.users', string="Nhân viên", required=True)
+    # SỬA: Thay 'res.users' bằng 'nhan_vien'
+    nhan_vien_id = fields.Many2one('nhan_vien', string="Nhân viên", required=True)
     so_lan_ho_tro = fields.Integer(string="Số lần hỗ trợ", default=0)
     ho_tro_ids = fields.Many2many('ho_tro_khach_hang', string="Danh sách hỗ trợ")
 
@@ -54,13 +55,14 @@ class ThongKeHoTroNhanVien(models.Model):
         for data in ho_tro_data:
             nhan_vien_id_val = data['nhan_vien_phu_trach']
             if nhan_vien_id_val:
+                # SỬA: lấy ID nhân viên từ nhan_vien_phu_trach
                 nhan_vien = nhan_vien_id_val[0]  # Lấy ID nhân viên
                 so_lan_ho_tro = data['nhan_vien_phu_trach_count']
                 ho_tro_records = self.env['ho_tro_khach_hang'].search([('nhan_vien_phu_trach', '=', nhan_vien)])
 
                 # Tạo bản ghi mới với context đặc biệt
                 self.with_context(from_update_button=True).create({
-                    'nhan_vien_id': nhan_vien,
+                    'nhan_vien_id': nhan_vien,  # SỬA: trực tiếp gán ID
                     'so_lan_ho_tro': so_lan_ho_tro,
                     'ho_tro_ids': [(6, 0, ho_tro_records.ids)]
                 })
