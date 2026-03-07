@@ -1,6 +1,6 @@
 from odoo import http
 from odoo.http import request
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 class DashboardAI(http.Controller):
 
@@ -59,26 +59,55 @@ class DashboardAI(http.Controller):
                     so_danh_gia += 1
             danh_gia_tb = round(tong_diem / so_danh_gia, 1) if so_danh_gia else 0
             
-            # VĂN BẢN
+            # VĂN BẢN - SỬA THEO ĐÚNG MODEL quan_ly_van_ban
             vb_den = request.env['van_ban_den'].search([])
             vb_di = request.env['van_ban_di'].search([])
             tong_vb = len(vb_den) + len(vb_di)
             
-            # Văn bản tháng này
-            today = datetime.now()
-            first_day = today.replace(day=1)
-            vb_thang_nay = 0
-            for vb in vb_den:
-                if vb.ngay_van_ban and vb.ngay_van_ban >= first_day.date():
-                    vb_thang_nay += 1
+            # Lấy tháng hiện tại
+            today = date.today()
+            current_month = today.month
+            current_year = today.year
             
-            # Văn bản tháng trước
-            last_month = first_day - timedelta(days=1)
-            first_day_last_month = last_month.replace(day=1)
-            vb_thang_truoc = 0
+            # Tháng trước
+            if current_month == 1:
+                last_month = 12
+                last_month_year = current_year - 1
+            else:
+                last_month = current_month - 1
+                last_month_year = current_year
+            
+            # Đếm văn bản đến tháng này
+            vb_den_thang_nay = 0
             for vb in vb_den:
-                if vb.ngay_van_ban and first_day_last_month.date() <= vb.ngay_van_ban < first_day.date():
-                    vb_thang_truoc += 1
+                if vb.ngay_van_ban:  # Dùng ngay_van_ban, không phải create_date
+                    if vb.ngay_van_ban.month == current_month and vb.ngay_van_ban.year == current_year:
+                        vb_den_thang_nay += 1
+            
+            # Đếm văn bản đến tháng trước
+            vb_den_thang_truoc = 0
+            for vb in vb_den:
+                if vb.ngay_van_ban:
+                    if vb.ngay_van_ban.month == last_month and vb.ngay_van_ban.year == last_month_year:
+                        vb_den_thang_truoc += 1
+            
+            # Đếm văn bản đi tháng này
+            vb_di_thang_nay = 0
+            for vb in vb_di:
+                if vb.ngay_van_ban:
+                    if vb.ngay_van_ban.month == current_month and vb.ngay_van_ban.year == current_year:
+                        vb_di_thang_nay += 1
+            
+            # Đếm văn bản đi tháng trước
+            vb_di_thang_truoc = 0
+            for vb in vb_di:
+                if vb.ngay_van_ban:
+                    if vb.ngay_van_ban.month == last_month and vb.ngay_van_ban.year == last_month_year:
+                        vb_di_thang_truoc += 1
+            
+            # Tổng hợp
+            vb_thang_nay = vb_den_thang_nay + vb_di_thang_nay
+            vb_thang_truoc = vb_den_thang_truoc + vb_di_thang_truoc
             
             # Tỷ lệ tăng trưởng
             tang_truong = 0
@@ -128,14 +157,14 @@ class DashboardAI(http.Controller):
                 start = today - timedelta(weeks=i)
                 end = today - timedelta(weeks=i-1)
                 
-                # Văn bản xử lý
+                # Văn bản xử lý - SỬA: dùng ngay_van_ban thay vì create_date
                 vb = request.env['van_ban_den'].search_count([
                     ('nhan_vien_xu_ly_id', '=', nhan_vien.id),
-                    ('create_date', '>=', start),
-                    ('create_date', '<', end)
+                    ('ngay_van_ban', '>=', start.date()),
+                    ('ngay_van_ban', '<', end.date())
                 ])
                 
-                # Hỗ trợ khách hàng
+                # Hỗ trợ khách hàng - giữ nguyên create_date
                 ht = request.env['ho_tro_khach_hang'].search_count([
                     ('nhan_vien_phu_trach', '=', nhan_vien.id),
                     ('create_date', '>=', start),

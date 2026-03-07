@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-
         <!-- SEARCH VIEW -->
         <record id="van_ban_den_search" model="ir.ui.view">
             <field name="name">van.ban.den.search</field>
@@ -14,6 +13,15 @@
                     <field name="loai_van_ban_id"/>
                     <field name="khach_hang_id"/>
                     <field name="noi_gui_den"/>
+                    <!-- <field name="trich_yeu"/> -->
+                    <filter name="do_khan_khan" string="Khẩn" domain="[('do_khan','=','khan')]"/>
+                    <filter name="do_khan_hoa_toc" string="Hỏa tốc" domain="[('do_khan','=','hoa_toc')]"/>
+                    <filter name="do_mat" string="Mật" domain="[('do_mat','in',['mat','tuyet_mat'])]"/>
+                    <group expand="0" string="Nhóm theo">
+                        <filter name="group_loai" string="Loại văn bản" context="{'group_by':'loai_van_ban_id'}"/>
+                        <filter name="group_khach_hang" string="Khách hàng" context="{'group_by':'khach_hang_id'}"/>
+                        <filter name="group_do_khan" string="Độ khẩn" context="{'group_by':'do_khan'}"/>
+                    </group>
                 </search>
             </field>
         </record>
@@ -26,21 +34,59 @@
                 <form string="Văn bản đến">
                     <sheet>
                         <div class="oe_title">
+                            <label for="ten_van_ban" class="oe_edit_only"/>
                             <h1>
-                                <field name="ten_van_ban" placeholder="Tên văn bản"/>
+                                <field name="ten_van_ban" placeholder="Tên văn bản..."/>
                             </h1>
                         </div>
-                        <group string="Thông tin chung" col="2">
-                            <field name="so_van_ban_den"/>
-                            <field name="so_hieu_van_ban"/>
-                            <field name="ngay_van_ban"/>
-                            <field name="loai_van_ban_id"/>
-                            <field name="khach_hang_id"/>
-                            <field name="noi_gui_den"/>
+                        
+                        <group string="Thông tin chung">
+                            <group>
+                                <field name="so_van_ban_den"/>
+                                <field name="so_hieu_van_ban"/>
+                                <field name="ngay_van_ban"/>
+                                <field name="ngay_nhan"/>
+                            </group>
+                            <group>
+                                <field name="loai_van_ban_id" options="{'no_create': True}"/>
+                                <field name="khach_hang_id" options="{'no_create': True}"/>
+                                <field name="noi_gui_den"/>
+                            </group>
                         </group>
-                        <group string="Nhân sự" col="2">
-                            <field name="nhan_vien_xu_ly_id"/>
-                            <field name="nhan_vien_ky_id"/>
+
+                        <group string="Phân loại">
+                            <group>
+                                <field name="do_khan" widget="radio"/>
+                            </group>
+                            <group>
+                                <field name="do_mat" widget="radio"/>
+                            </group>
+                        </group>
+
+                        <group string="Nội dung">
+                            <field name="trich_yeu" nolabel="1" placeholder="Trích yếu nội dung..."/>
+                        </group>
+
+                        <group string="Nhân sự">
+                            <group>
+                                <field name="nhan_vien_xu_ly_id" options="{'no_create': True}"/>
+                                <field name="nhan_vien_ky_id" options="{'no_create': True}"/>
+                            </group>
+                        </group>
+
+                        <group string="File đính kèm">
+                            <field name="file_dinh_kem" filename="file_name" nolabel="1"/>
+                            <field name="file_name" invisible="1"/>
+                        </group>
+
+                        <group string="Ghi chú">
+                            <field name="ghi_chu" nolabel="1" placeholder="Ghi chú..."/>
+                        </group>
+
+                        <group string="Thông tin hệ thống">
+                            <group>
+                                <field name="user_id" readonly="1"/>
+                            </group>
                         </group>
                     </sheet>
                 </form>
@@ -52,12 +98,15 @@
             <field name="name">van_ban_den.tree</field>
             <field name="model">van_ban_den</field>
             <field name="arch" type="xml">
-                <tree>
+                <tree decoration-warning="do_khan=='khan'" decoration-danger="do_khan=='hoa_toc'" decoration-info="do_mat in ['mat','tuyet_mat']">
                     <field name="ten_van_ban"/>
                     <field name="so_van_ban_den"/>
                     <field name="loai_van_ban_id"/>
                     <field name="khach_hang_id"/>
                     <field name="noi_gui_den"/>
+                    <field name="ngay_van_ban"/>
+                    <field name="do_khan" widget="badge" decoration-warning="do_khan=='khan'" decoration-danger="do_khan=='hoa_toc'"/>
+                    <field name="do_mat" widget="badge" decoration-info="do_mat in ['mat','tuyet_mat']"/>
                 </tree>
             </field>
         </record>
@@ -69,6 +118,5 @@
             <field name="view_mode">tree,form</field>
             <field name="search_view_id" ref="van_ban_den_search"/>
         </record>
-
     </data>
 </odoo>
