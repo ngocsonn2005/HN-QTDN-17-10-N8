@@ -59,7 +59,7 @@ class DashboardAI(http.Controller):
                     so_danh_gia += 1
             danh_gia_tb = round(tong_diem / so_danh_gia, 1) if so_danh_gia else 0
             
-            # VĂN BẢN - SỬA THEO ĐÚNG MODEL quan_ly_van_ban
+            # VĂN BẢN
             vb_den = request.env['van_ban_den'].search([])
             vb_di = request.env['van_ban_di'].search([])
             tong_vb = len(vb_den) + len(vb_di)
@@ -80,7 +80,7 @@ class DashboardAI(http.Controller):
             # Đếm văn bản đến tháng này
             vb_den_thang_nay = 0
             for vb in vb_den:
-                if vb.ngay_van_ban:  # Dùng ngay_van_ban, không phải create_date
+                if vb.ngay_van_ban:
                     if vb.ngay_van_ban.month == current_month and vb.ngay_van_ban.year == current_year:
                         vb_den_thang_nay += 1
             
@@ -133,6 +133,8 @@ class DashboardAI(http.Controller):
                 },
                 'van_ban': {
                     'tong': tong_vb,
+                    'den': len(vb_den),           # THÊM DÒNG NÀY
+                    'di': len(vb_di),              # THÊM DÒNG NÀY
                     'thang_nay': vb_thang_nay,
                     'thang_truoc': vb_thang_truoc,
                     'tang_truong': tang_truong,
@@ -157,14 +159,14 @@ class DashboardAI(http.Controller):
                 start = today - timedelta(weeks=i)
                 end = today - timedelta(weeks=i-1)
                 
-                # Văn bản xử lý - SỬA: dùng ngay_van_ban thay vì create_date
+                # Văn bản xử lý
                 vb = request.env['van_ban_den'].search_count([
                     ('nhan_vien_xu_ly_id', '=', nhan_vien.id),
                     ('ngay_van_ban', '>=', start.date()),
                     ('ngay_van_ban', '<', end.date())
                 ])
                 
-                # Hỗ trợ khách hàng - giữ nguyên create_date
+                # Hỗ trợ khách hàng
                 ht = request.env['ho_tro_khach_hang'].search_count([
                     ('nhan_vien_phu_trach', '=', nhan_vien.id),
                     ('create_date', '>=', start),
