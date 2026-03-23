@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ai_model_manager_form" model="ir.ui.view">
+        <field name="name">ai.model.manager.form</field>
+        <field name="model">ai.model.manager</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_train_model" string="Huấn luyện AI" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="model_type"/>
+                            <field name="is_active"/>
+                        </group>
+                        <group>
+                            <field name="trained_date"/>
+                            <field name="training_samples"/>
+                            <field name="accuracy"/>
+                            <field name="mae"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="model_path"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_ai_model_manager" model="ir.actions.act_window">
+        <field name="name">AI Model Manager</field>
+        <field name="res_model">ai.model.manager</field>
+        <field name="view_mode">form,tree</field>
+    </record>
+
+    <menuitem id="menu_ai_model_manager" 
+              name="AI Model Manager" 
+              parent="menu_dashboard_root"
+              action="action_ai_model_manager" 
+              sequence="20"/>
+</odoo>

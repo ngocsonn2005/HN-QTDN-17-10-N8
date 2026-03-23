@@ -1,10 +1,16 @@
+# -*- coding: utf-8 -*-
+
 from odoo import http
 from odoo.http import request
 from datetime import datetime, timedelta, date
+import json
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class DashboardAI(http.Controller):
 
-    @http.route('/dashboard/data', type='json', auth='user', methods=['POST'])
+    @http.route('/dashboard/data', type='json', auth='user', methods=['POST'], csrf=False)
     def get_dashboard_data(self):
         """Lấy dữ liệu thống kê"""
         try:
@@ -34,6 +40,7 @@ class DashboardAI(http.Controller):
             khach_hangs = request.env['khach_hang'].search([])
             tong_kh = len(khach_hangs)
             
+            # HỖ TRỢ KHÁCH HÀNG
             ho_tros = request.env['ho_tro_khach_hang'].search([])
             tong_ht = len(ho_tros)
             
@@ -41,7 +48,7 @@ class DashboardAI(http.Controller):
             seven_days_ago = datetime.now() - timedelta(days=7)
             ht_moi = 0
             for ht in ho_tros:
-                if ht.create_date and ht.create_date >= seven_days_ago:
+                if ht.thoi_gian_bat_dau and ht.thoi_gian_bat_dau >= seven_days_ago:
                     ht_moi += 1
             
             # Đếm hỗ trợ đang chờ
@@ -60,8 +67,8 @@ class DashboardAI(http.Controller):
             danh_gia_tb = round(tong_diem / so_danh_gia, 1) if so_danh_gia else 0
             
             # VĂN BẢN
-            vb_den = request.env['van_ban_den'].search([])
-            vb_di = request.env['van_ban_di'].search([])
+            vb_den = request.env['van_ban_den'].search([]) if 'van_ban_den' in request.env else []
+            vb_di = request.env['van_ban_di'].search([]) if 'van_ban_di' in request.env else []
             tong_vb = len(vb_den) + len(vb_di)
             
             # Lấy tháng hiện tại
@@ -133,17 +140,18 @@ class DashboardAI(http.Controller):
                 },
                 'van_ban': {
                     'tong': tong_vb,
-                    'den': len(vb_den),           # THÊM DÒNG NÀY
-                    'di': len(vb_di),              # THÊM DÒNG NÀY
+                    'den': len(vb_den),
+                    'di': len(vb_di),
                     'thang_nay': vb_thang_nay,
                     'thang_truoc': vb_thang_truoc,
                     'tang_truong': tang_truong,
                 }
             }
         except Exception as e:
+            _logger.error("Error in get_dashboard_data: %s", str(e))
             return {'error': str(e)}
 
-    @http.route('/ai/predict/<int:nhan_vien_id>', type='json', auth='user', methods=['POST'])
+    @http.route('/ai/predict/<int:nhan_vien_id>', type='json', auth='user', methods=['POST'], csrf=False)
     def predict_workload(self, nhan_vien_id):
         """Dự đoán khối lượng công việc cho nhân viên"""
         try:
@@ -155,44 +163,65 @@ class DashboardAI(http.Controller):
             today = datetime.now()
             lich_su = []
             
-            for i in range(4, 0, -1):
-                start = today - timedelta(weeks=i)
-                end = today - timedelta(weeks=i-1)
+            _logger.info("=== PREDICT FOR: %s (ID: %s) ===", nhan_vien.ho_va_ten, nhan_vien.id)
+            _logger.info("Current date: %s", today.strftime('%Y-%m-%d %H:%M:%S'))
+            
+            # Tính từ tuần gần nhất (week=1) đến tuần xa nhất (week=4)
+            # week=1: từ 0-7 ngày trước (gần nhất)
+            # week=2: từ 7-14 ngày trước
+            # week=3: từ 14-21 ngày trước
+            # week=4: từ 21-28 ngày trước
+            for week in range(1, 5):
+                # Tính ngày bắt đầu và kết thúc của tuần
+                end_date = today - timedelta(days=7*(week-1))
+                start_date = today - timedelta(days=7*week)
+                
+                _logger.info("Week %s: from %s to %s", week, start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
                 
                 # Văn bản xử lý
-                vb = request.env['van_ban_den'].search_count([
-                    ('nhan_vien_xu_ly_id', '=', nhan_vien.id),
-                    ('ngay_van_ban', '>=', start.date()),
-                    ('ngay_van_ban', '<', end.date())
-                ])
+                vb_count = 0
+                if 'van_ban_den' in request.env:
+                    vb_count = request.env['van_ban_den'].search_count([
+                        ('nhan_vien_xu_ly_id', '=', nhan_vien.id),
+                        ('ngay_van_ban', '>=', start_date.date()),
+                        ('ngay_van_ban', '<', end_date.date())
+                    ])
                 
                 # Hỗ trợ khách hàng
-                ht = request.env['ho_tro_khach_hang'].search_count([
-                    ('nhan_vien_phu_trach', '=', nhan_vien.id),
-                    ('create_date', '>=', start),
-                    ('create_date', '<', end)
-                ])
+                ht_count = 0
+                if 'ho_tro_khach_hang' in request.env:
+                    ht_count = request.env['ho_tro_khach_hang'].search_count([
+                        ('nhan_vien_phu_trach', '=', nhan_vien.id),
+                        ('thoi_gian_bat_dau', '>=', start_date),
+                        ('thoi_gian_bat_dau', '<', end_date)
+                    ])
                 
-                lich_su.append(vb + ht)
+                lich_su.append(vb_count + ht_count)
+                _logger.info("Week %s: VB=%s, HT=%s, Total=%s", week, vb_count, ht_count, vb_count + ht_count)
             
-            # Dự đoán bằng trung bình động
+            # Dự đoán bằng trung bình động (tuần gần nhất trọng số cao)
             if sum(lich_su) == 0:
                 du_doan = 0
                 do_tin_cay = 0
             else:
-                du_doan = round(lich_su[3]*0.4 + lich_su[2]*0.3 + lich_su[1]*0.2 + lich_su[0]*0.1, 1)
+                # lich_su[0] = tuần 1 (gần nhất), lich_su[3] = tuần 4 (xa nhất)
+                du_doan = round(lich_su[0]*0.4 + lich_su[1]*0.3 + lich_su[2]*0.2 + lich_su[3]*0.1, 1)
                 
-                # Độ tin cậy
+                # Độ tin cậy dựa trên độ biến động
                 avg = sum(lich_su) / 4
                 bien_dong = sum(abs(x - avg) for x in lich_su) / 4
                 do_tin_cay = round(max(50, min(95, 100 - bien_dong * 5)), 1)
             
             # Lưu dự đoán
-            request.env['ai.prediction'].create({
-                'nhan_vien_id': nhan_vien.id,
-                'khoi_luong_du_doan': du_doan,
-                'do_tin_cay': do_tin_cay,
-            })
+            try:
+                if 'ai.prediction' in request.env:
+                    request.env['ai.prediction'].create({
+                        'nhan_vien_id': nhan_vien.id,
+                        'khoi_luong_du_doan': du_doan,
+                        'do_tin_cay': do_tin_cay,
+                    })
+            except Exception as e:
+                _logger.warning("Could not save prediction: %s", str(e))
             
             # Khuyến nghị
             if du_doan > 15:
@@ -214,14 +243,41 @@ class DashboardAI(http.Controller):
                 'khuyen_nghi': khuyen_nghi
             }
         except Exception as e:
+            _logger.error("Error in predict_workload: %s", str(e))
             return {'error': str(e)}
 
-    @http.route('/ai/test', type='http', auth='user')
-    def test_ai(self):
-        """Route test để kiểm tra AI"""
-        nhan_viens = request.env['nhan_vien'].search([])
-        result = "<h1>Test AI Route</h1><ul>"
-        for nv in nhan_viens:
-            result += f"<li>{nv.id} - {nv.ho_va_ten}</li>"
-        result += "</ul>"
-        return result
+    @http.route('/ai/train_model', type='json', auth='user', methods=['POST'], csrf=False)
+    def train_model(self):
+        """Route huấn luyện AI model"""
+        try:
+            _logger.info("=== TRAIN MODEL ROUTE CALLED ===")
+            
+            # Lấy model manager đang hoạt động
+            model_manager = request.env['ai.model.manager'].search([('is_active', '=', True)], limit=1)
+            if not model_manager:
+                # Tạo mới model manager
+                model_manager = request.env['ai.model.manager'].create({
+                    'name': 'AI Prediction Model',
+                    'model_type': 'random_forest',
+                    'is_active': True
+                })
+                _logger.info("Đã tạo mới AI Model Manager")
+            
+            # Gọi hàm huấn luyện
+            result = model_manager.action_train_model()
+            
+            _logger.info("Train result: %s", result)
+            return result
+            
+        except Exception as e:
+            _logger.error(f"Error training model: {str(e)}", exc_info=True)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Lỗi',
+                    'message': str(e),
+                    'type': 'danger',
+                    'sticky': True
+                }
+            }

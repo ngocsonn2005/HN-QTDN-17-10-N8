@@ -122,30 +122,6 @@
     line-height: 1.2;
 }
 
-.kpi-trend {
-    display: inline-block;
-    font-size: 0.85rem;
-    margin-top: 5px;
-}
-
-.kpi-trend .text-success {
-    color: #1cc88a;
-}
-
-.kpi-trend .text-danger {
-    color: #e74a3b;
-}
-
-.kpi-badge {
-    display: inline-block;
-    background: #f8f9fc;
-    padding: 3px 10px;
-    border-radius: 30px;
-    font-size: 0.8rem;
-    color: #4e73df;
-    margin-top: 5px;
-}
-
 /* Charts Row */
 .charts-row {
     display: grid;
@@ -179,27 +155,6 @@
     color: #4e73df;
 }
 
-.chart-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.chart-legend {
-    color: #4e73df;
-    cursor: pointer;
-    font-size: 0.9rem;
-}
-
-.period-select {
-    border: 1px solid #e3e6f0;
-    border-radius: 30px;
-    padding: 5px 15px;
-    font-size: 0.9rem;
-    background: #f8f9fc;
-    cursor: pointer;
-}
-
 .chart-body {
     position: relative;
     height: 200px;
@@ -227,7 +182,7 @@
     margin-left: 5px;
 }
 
-/* Card container (giữ nguyên của bạn) */
+/* Dashboard Cards */
 .dashboard-card {
     border: none;
     border-radius: 15px;
@@ -251,14 +206,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.card-badge {
-    background: rgba(255,255,255,0.2);
-    padding: 3px 10px;
-    border-radius: 30px;
-    font-size: 0.8rem;
-    font-weight: normal;
 }
 
 .dashboard-card .card-body {
@@ -290,49 +237,7 @@
     color: #2e3b4e;
 }
 
-.stat-value.small {
-    font-size: 1.1rem;
-}
-
-/* Rating Stars */
-.rating-stars {
-    display: inline-block;
-    margin-left: 5px;
-}
-
-.star-filled {
-    color: #f6c23e;
-}
-
-.star-empty {
-    color: #e3e6f0;
-}
-
-/* Card Footer */
-.card-footer {
-    background: #f8f9fc;
-    padding: 12px 20px;
-    border-top: 1px solid #edf2f9;
-    text-align: right;
-}
-
-.btn-card-action {
-    background: transparent;
-    border: none;
-    color: #4e73df;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 5px 10px;
-    border-radius: 30px;
-    transition: all 0.3s;
-}
-
-.btn-card-action:hover {
-    background: #4e73df;
-    color: white;
-}
-
-/* Card header colors (giữ nguyên của bạn) */
+/* Card Header Gradients */
 .bg-primary-gradient {
     background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
     color: white;
@@ -351,6 +256,20 @@
 .bg-info-gradient {
     background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
     color: white;
+}
+
+/* Rating Stars */
+.rating-stars {
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.star-filled {
+    color: #f6c23e;
+}
+
+.star-empty {
+    color: #e3e6f0;
 }
 
 /* AI Section */
@@ -403,7 +322,7 @@
     background: #f8f9fc;
 }
 
-/* Button AI (giữ nguyên của bạn) */
+/* Buttons */
 .btn-ai {
     background: linear-gradient(135deg, #4e73df, #224abe);
     border: none;
@@ -442,6 +361,43 @@
     color: white;
 }
 
+/* AI Tabs */
+.ai-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e3e6f0;
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #858796;
+    transition: all 0.3s;
+}
+
+.tab-btn:hover {
+    color: #4e73df;
+}
+
+.tab-btn.active {
+    color: #4e73df;
+    border-bottom: 2px solid #4e73df;
+    margin-bottom: -12px;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
 /* Prediction Result */
 .prediction-result {
     margin-top: 20px;
@@ -469,10 +425,39 @@
 .prediction-header h4 {
     margin: 0;
     font-size: 1.1rem;
+    flex: 1;
 }
 
 .prediction-header .employee-name {
     font-weight: 700;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    background: rgba(255,255,255,0.2);
+}
+
+.status-badge.critical {
+    background: #dc3545;
+    color: white;
+}
+
+.status-badge.high {
+    background: #fd7e14;
+    color: white;
+}
+
+.status-badge.medium {
+    background: #ffc107;
+    color: #2e3b4e;
+}
+
+.status-badge.low {
+    background: #28a745;
+    color: white;
 }
 
 .prediction-body {
@@ -506,24 +491,18 @@
     color: #2e3b4e;
 }
 
-.prediction-stat .stat-value.confidence {
-    display: inline-block;
-    padding: 5px 15px;
-    border-radius: 30px;
-    font-size: 1rem;
-}
-
 .confidence-0 { background: #e74a3b20; color: #e74a3b; }
 .confidence-25 { background: #f6c23e20; color: #f6c23e; }
 .confidence-50 { background: #4e73df20; color: #4e73df; }
 .confidence-75 { background: #1cc88a20; color: #1cc88a; }
 
-.workload-trend {
+/* Workload History */
+.workload-history {
     margin: 20px 0;
 }
 
-.workload-trend h5 {
-    margin: 0 0 10px 0;
+.workload-history h5 {
+    margin-bottom: 10px;
     color: #2e3b4e;
 }
 
@@ -554,6 +533,14 @@
     color: #2e3b4e;
 }
 
+.trend-labels {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: #858796;
+}
+
 .recommendation {
     display: flex;
     align-items: center;
@@ -574,19 +561,24 @@
     font-size: 20px;
 }
 
-.rec-icon.warning {
-    background: #f6c23e20;
-    color: #f6c23e;
+.rec-icon.critical {
+    background: #dc354520;
+    color: #dc3545;
 }
 
-.rec-icon.normal {
-    background: #4e73df20;
-    color: #4e73df;
+.rec-icon.high {
+    background: #fd7e1420;
+    color: #fd7e14;
 }
 
-.rec-icon.success {
-    background: #1cc88a20;
-    color: #1cc88a;
+.rec-icon.medium {
+    background: #ffc10720;
+    color: #ffc107;
+}
+
+.rec-icon.low {
+    background: #28a74520;
+    color: #28a745;
 }
 
 .rec-text {
@@ -594,12 +586,375 @@
     font-weight: 500;
 }
 
-/* Grid layout (giữ nguyên của bạn) */
+/* Dashboard Grid */
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 25px;
     margin-top: 20px;
+}
+
+/* Advanced Prediction */
+.advanced-prediction {
+    padding: 20px;
+}
+
+.advanced-prediction h3 {
+    margin-top: 0;
+    color: #2e3b4e;
+}
+
+.trend-analysis {
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+}
+
+.trend-analysis.trend-up {
+    background: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.trend-analysis.trend-down {
+    background: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+}
+
+.trend-analysis.trend-stable {
+    background: #e2e3e5;
+    color: #383d41;
+    border-left: 4px solid #6c757d;
+}
+
+.burnout-warning {
+    background: #f8d7da;
+    border-left: 4px solid #dc3545;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 5px;
+    color: #721c24;
+    font-weight: 600;
+}
+
+.weekly-predictions {
+    margin: 20px 0;
+}
+
+.prediction-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.prediction-table th,
+.prediction-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.prediction-table th {
+    background: #f8f9fc;
+    font-weight: 600;
+}
+
+.text-critical {
+    color: #dc3545;
+    font-weight: 700;
+}
+
+.text-high {
+    color: #fd7e14;
+    font-weight: 700;
+}
+
+.text-medium {
+    color: #ffc107;
+    font-weight: 700;
+}
+
+.text-low {
+    color: #28a745;
+    font-weight: 700;
+}
+
+.history-stats {
+    font-size: 0.85rem;
+    color: #858796;
+}
+
+/* Team Prediction */
+.team-prediction h3 {
+    margin-top: 0;
+    color: #2e3b4e;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-box {
+    background: #f8f9fc;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.stat-box .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.stat-box .stat-label {
+    font-size: 0.9rem;
+    color: #858796;
+}
+
+.stat-box .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2e3b4e;
+}
+
+.employee-list h4 {
+    margin: 20px 0 15px 0;
+    color: #2e3b4e;
+}
+
+.employee-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.employee-card {
+    background: #f8f9fc;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s;
+    border-left: 4px solid #e3e6f0;
+}
+
+.employee-card.critical {
+    border-left-color: #dc3545;
+    background: #f8d7da20;
+}
+
+.employee-card.high {
+    border-left-color: #fd7e14;
+    background: #fff3cd20;
+}
+
+.employee-card.medium {
+    border-left-color: #ffc107;
+}
+
+.employee-card.low {
+    border-left-color: #28a745;
+}
+
+.employee-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.employee-workload {
+    margin: 10px 0;
+}
+
+.workload-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #4e73df;
+}
+
+.workload-unit {
+    font-size: 0.8rem;
+    color: #858796;
+}
+
+.team-recommendations {
+    margin-top: 25px;
+}
+
+.recommendations-list {
+    margin-top: 15px;
+}
+
+.recommendation-tip {
+    padding: 10px;
+    margin: 5px 0;
+    background: #f8f9fc;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.recommendation-tip i {
+    color: #4e73df;
+}
+
+/* Optimization Result */
+.optimization-result {
+    padding: 20px;
+}
+
+.optimization-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.optimization-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.optimization-title i {
+    font-size: 24px;
+    color: #4e73df;
+}
+
+.optimization-title h3 {
+    margin: 0;
+    color: #2e3b4e;
+}
+
+.optimization-score {
+    background: linear-gradient(135deg, #4e73df, #224abe);
+    color: white;
+    padding: 15px;
+    border-radius: 50%;
+    text-align: center;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.score-circle .score-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.score-circle .score-label {
+    font-size: 0.7rem;
+}
+
+.optimization-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fc;
+    border-radius: 10px;
+}
+
+.assignments-list {
+    margin-top: 20px;
+}
+
+.assignments-list h4 {
+    margin-bottom: 15px;
+    color: #2e3b4e;
+}
+
+.assignments-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.assignments-table th,
+.assignments-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.assignments-table th {
+    background: #f8f9fc;
+    font-weight: 600;
+}
+
+.assigned-employee {
+    font-weight: 600;
+    color: #4e73df;
+}
+
+.optimization-note {
+    margin-top: 20px;
+    padding: 10px;
+    background: #e2e3e5;
+    border-radius: 5px;
+    color: #383d41;
+}
+
+.recommendation-item {
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+}
+
+.recommendation-item.urgent {
+    background: #f8d7da;
+    border-left: 4px solid #dc3545;
+}
+
+.recommendation-item.warning {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.recommendation-item.success {
+    background: #d4edda;
+    border-left: 4px solid #28a745;
+}
+
+.recommendation-item .rec-title {
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.recommendation-item .rec-message {
+    margin-bottom: 10px;
+}
+
+.recommendation-item .rec-actions ul {
+    margin: 5px 0 0 20px;
+    padding: 0;
+}
+
+/* Test Section */
+.test-ai-section {
+    text-align: center;
+    padding: 20px;
+}
+
+.test-result {
+    margin-top: 20px;
+    text-align: left;
+}
+
+.test-response pre {
+    background: #f8f9fc;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
 }
 
 /* Loading State */
@@ -639,45 +994,77 @@
     margin-right: 10px;
 }
 
-/* Icon styling (giữ nguyên của bạn) */
-.stat-icon {
-    font-size: 2rem;
-    margin-right: 15px;
-    opacity: 0.8;
+/* Alert Messages */
+.alert {
+    padding: 15px;
+    border-radius: 5px;
+    margin: 10px 0;
 }
 
-/* Badge cho trạng thái (giữ nguyên của bạn) */
-.badge-ai {
-    display: inline-block;
-    padding: 5px 12px;
-    border-radius: 30px;
-    font-weight: 600;
-    font-size: 0.85rem;
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
 }
-.badge-very-high { background: #dc3545; color: white; }
-.badge-high { background: #fd7e14; color: white; }
-.badge-normal { background: #28a745; color: white; }
-.badge-low { background: #6c757d; color: white; }
+
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
     .o_dashboard {
         padding: 15px;
     }
+    
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
+    
     .charts-row {
         grid-template-columns: 1fr;
     }
+    
     .ai-header {
         flex-direction: column;
         align-items: stretch;
     }
+    
     .employee-select {
         width: 100%;
     }
+    
     .prediction-stats {
         grid-template-columns: 1fr;
+    }
+    
+    .summary-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .employee-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .optimization-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .prediction-table {
+        font-size: 0.85rem;
+    }
+    
+    .prediction-table th,
+    .prediction-table td {
+        padding: 5px;
     }
 }

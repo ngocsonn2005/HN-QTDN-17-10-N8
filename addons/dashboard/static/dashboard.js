@@ -16,7 +16,6 @@ odoo.define('dashboard.dashboard', function(require) {
 
         _startAutoRefresh: function() {
             var self = this;
-            // Tự động refresh mỗi 5 phút
             setInterval(function() {
                 self.load_data(true);
             }, 300000);
@@ -180,7 +179,7 @@ odoo.define('dashboard.dashboard', function(require) {
                             </div>
                         </div>
 
-                        <!-- Văn bản card chi tiết - ĐÃ XÓA VĂN BẢN ĐẾN VÀ ĐI -->
+                        <!-- Văn bản card chi tiết -->
                         <div class="dashboard-card">
                             <div class="card-header bg-warning-gradient">
                                 <i class="fa fa-file-text-o mr-2"></i> Văn bản
@@ -211,22 +210,22 @@ odoo.define('dashboard.dashboard', function(require) {
                         <div class="ai-header">
                             <div class="ai-title">
                                 <i class="fa fa-robot"></i>
-                                <h3>Trợ lý AI - Dự đoán khối lượng công việc</h3>
+                                <h3>Trợ lý AI thông minh</h3>
                             </div>
                             <div class="ai-controls">
                                 <select id="employee-select" class="employee-select">
                                     <option value="">Chọn nhân viên...</option>
                                 </select>
-                                <button class="btn-ai" id="predict_button">
-                                    <i class="fa fa-magic"></i> Dự đoán ngay
+                                <button class="btn-ai" id="train_ai_button">
+                                    <i class="fa fa-brain"></i> Huấn luyện AI
                                 </button>
-                                <button class="btn-ai-outline" id="test_button">
-                                    <i class="fa fa-flask"></i> Test
+                                <button class="btn-ai" id="predict_button">
+                                    <i class="fa fa-magic"></i> Dự đoán
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Prediction Result -->
+                        <!-- Kết quả dự đoán -->
                         <div id="prediction_result" class="prediction-result"></div>
                     </div>
                 </div>
@@ -238,8 +237,8 @@ odoo.define('dashboard.dashboard', function(require) {
         },
 
         _initEventHandlers: function() {
+            this.$('#train_ai_button').click(this.train_ai.bind(this));
             this.$('#predict_button').click(this.predict_staff.bind(this));
-            this.$('#test_button').click(this.test_ai.bind(this));
             this.$('#refresh-btn').click(() => this.load_data());
         },
 
@@ -299,14 +298,12 @@ odoo.define('dashboard.dashboard', function(require) {
                 return;
             }
             
-            // Nhân sự
             this.$('.tong-nv').text(data.nhan_su.tong || 0);
             this.$('.nv-duoi30').text(data.nhan_su.duoi30 || 0);
             this.$('.nv-30-45').text(data.nhan_su['30_45'] || 0);
             this.$('.nv-tren45').text(data.nhan_su.tren45 || 0);
             this.$('.tuoi-tb').text(data.nhan_su.tuoi_tb || 0);
             
-            // Khách hàng
             this.$('.tong-kh').text(data.khach_hang.tong || 0);
             this.$('.tong-ht').text(data.khach_hang.ho_tro.tong || 0);
             this.$('.ht-moi').text(data.khach_hang.ho_tro.moi || 0);
@@ -314,13 +311,11 @@ odoo.define('dashboard.dashboard', function(require) {
             this.$('.danh-gia').text(data.khach_hang.ho_tro.danh_gia || 0);
             this._updateRatingStars(data.khach_hang.ho_tro.danh_gia || 0);
             
-            // Văn bản - ĐÃ XÓA vb-den VÀ vb-di
             this.$('.tong-vb').text(data.van_ban.tong || 0);
             this.$('.vb-thang-nay').text(data.van_ban.thang_nay || 0);
             this.$('.vb-thang-truoc').text(data.van_ban.thang_truoc || 0);
             this.$('.tang-truong').text((data.van_ban.tang_truong || 0) + '%');
             
-            // Update charts
             this._updateCharts(data);
         },
 
@@ -406,8 +401,67 @@ odoo.define('dashboard.dashboard', function(require) {
             });
         },
 
-        test_ai: function() {
-            window.open('/ai/test', '_blank');
+        train_ai: function() {
+            var self = this;
+            var resultDiv = this.$('#prediction_result');
+            
+            resultDiv.html('<div class="loading-spinner"><i class="fa fa-spinner fa-spin"></i> Đang huấn luyện AI model...</div>');
+            
+            // Gọi route đã thêm vào controllers.py
+            rpc.query({
+                route: '/ai/train_model',
+            }).then(function(result) {
+                console.log("Train result:", result);
+                
+                if (result && result.params) {
+                    if (result.params.type === 'danger') {
+                        resultDiv.html(`
+                            <div class="alert alert-danger">
+                                <i class="fa fa-exclamation-circle"></i> <strong>${result.params.title}</strong>
+                                <br><small>${result.params.message}</small>
+                            </div>
+                        `);
+                    } else {
+                        resultDiv.html(`
+                            <div class="alert alert-success">
+                                <i class="fa fa-check-circle"></i> <strong>${result.params.title}</strong>
+                                <br><small>${result.params.message.replace(/\n/g, '<br>')}</small>
+                            </div>
+                        `);
+                    }
+                } else {
+                    resultDiv.html(`
+                        <div class="alert alert-success">
+                            <i class="fa fa-check-circle"></i> <strong>Huấn luyện thành công!</strong>
+                            <br><small>Model AI đã được huấn luyện và sẵn sàng sử dụng.</small>
+                        </div>
+                    `);
+                }
+            }).catch(function(error) {
+                console.error("Train AI error:", error);
+                
+                let errorMessage = 'Không xác định';
+                if (error.message) {
+                    errorMessage = error.message;
+                } else if (error.data && error.data.message) {
+                    errorMessage = error.data.message;
+                } else if (error.data && error.data.arguments && error.data.arguments[0]) {
+                    errorMessage = error.data.arguments[0];
+                }
+                
+                resultDiv.html(`
+                    <div class="alert alert-danger">
+                        <i class="fa fa-exclamation-circle"></i> <strong>Lỗi huấn luyện AI</strong>
+                        <br><small>${errorMessage}</small>
+                        <br><br>
+                        <strong>Thông tin:</strong>
+                        <ul>
+                            <li>Model đã được huấn luyện thành công từ AI Model Manager</li>
+                            <li>Vui lòng làm mới trang và thử lại dự đoán</li>
+                        </ul>
+                    </div>
+                `);
+            });
         },
 
         predict_staff: function() {
@@ -423,7 +477,7 @@ odoo.define('dashboard.dashboard', function(require) {
             var self = this;
             var resultDiv = this.$('#prediction_result');
             
-            resultDiv.html('<div class="loading-spinner"><i class="fa fa-spinner fa-spin"></i> Đang xử lý...</div>');
+            resultDiv.html('<div class="loading-spinner"><i class="fa fa-spinner fa-spin"></i> Đang xử lý dự đoán...</div>');
             
             rpc.query({
                 route: '/ai/predict/' + nv_id,
@@ -431,36 +485,80 @@ odoo.define('dashboard.dashboard', function(require) {
                 if (result.error) {
                     resultDiv.html(`<div class="alert alert-danger">Lỗi: ${result.error}</div>`);
                 } else {
-                    var resultHtml = `
-                        <div class="prediction-card">
-                            <div class="prediction-header">
-                                <i class="fa fa-robot"></i>
-                                <h4>Kết quả dự đoán cho <span class="employee-name">${result.nhan_vien}</span></h4>
-                            </div>
-                            <div class="prediction-body">
-                                <div class="prediction-stats">
-                                    <div class="prediction-stat">
-                                        <span class="stat-label">Dự đoán</span>
-                                        <span class="stat-value">${result.du_doan} <small>cv/ngày</small></span>
-                                    </div>
-                                    <div class="prediction-stat">
-                                        <span class="stat-label">Độ tin cậy</span>
-                                        <span class="stat-value">${result.do_tin_cay}%</span>
-                                    </div>
-                                </div>
-                                <div class="recommendation">
-                                    <div class="rec-text">${result.khuyen_nghi}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    resultDiv.html(resultHtml);
+                    self._renderPredictionResult(result);
                 }
             }).catch(function(error) {
                 console.error("Predict error:", error);
-                resultDiv.html('<div class="alert alert-danger">Lỗi kết nối</div>');
+                resultDiv.html('<div class="alert alert-danger">Lỗi kết nối đến AI service</div>');
             });
         },
+
+        _renderPredictionResult: function(result) {
+            var statusClass = '';
+            var statusIcon = '';
+            
+            if (result.du_doan > 15) {
+                statusClass = 'critical';
+                statusIcon = '🔴';
+            } else if (result.du_doan > 10) {
+                statusClass = 'high';
+                statusIcon = '🟡';
+            } else if (result.du_doan > 5) {
+                statusClass = 'medium';
+                statusIcon = '🟢';
+            } else if (result.du_doan > 0) {
+                statusClass = 'low';
+                statusIcon = '🔵';
+            } else {
+                statusClass = 'none';
+                statusIcon = '⚪';
+            }
+            
+            var resultHtml = `
+                <div class="prediction-card">
+                    <div class="prediction-header">
+                        <i class="fa fa-robot"></i>
+                        <h4>Kết quả dự đoán cho <span class="employee-name">${result.nhan_vien}</span></h4>
+                        <span class="status-badge ${statusClass}">${statusIcon} ${result.khuyen_nghi.split('!')[0]}</span>
+                    </div>
+                    <div class="prediction-body">
+                        <div class="prediction-stats">
+                            <div class="prediction-stat">
+                                <span class="stat-label">Dự đoán khối lượng</span>
+                                <span class="stat-value">${result.du_doan} <small>công việc/ngày</small></span>
+                            </div>
+                            <div class="prediction-stat">
+                                <span class="stat-label">Độ tin cậy</span>
+                                <span class="stat-value confidence-${Math.floor(result.do_tin_cay/25)*25}">${result.do_tin_cay}%</span>
+                            </div>
+                        </div>
+                        <div class="workload-history">
+                            <h5>Lịch sử 4 tuần gần nhất:</h5>
+                            <div class="trend-bars">
+                                ${result.lich_su.map((value, index) => `
+                                    <div class="trend-bar" style="height: ${Math.min(value * 5, 100)}px">
+                                        <span class="bar-value">${value}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="trend-labels">
+                                <span>Tuần 4</span>
+                                <span>Tuần 3</span>
+                                <span>Tuần 2</span>
+                                <span>Tuần 1</span>
+                            </div>
+                        </div>
+                        <div class="recommendation">
+                            <div class="rec-icon ${statusClass}">
+                                ${statusIcon}
+                            </div>
+                            <div class="rec-text">${result.khuyen_nghi}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            this.$('#prediction_result').html(resultHtml);
+        }
     });
 
     // Load Chart.js
