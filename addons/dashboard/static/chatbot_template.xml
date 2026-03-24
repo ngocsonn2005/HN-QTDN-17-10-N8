@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="ChatbotWidget" owl="1">
+        <div class="chatbot-widget">
+            <div class="chatbot-header">
+                <i class="fa fa-robot"/>
+                <span>Trợ lý AI thông minh</span>
+                <button class="btn btn-sm btn-link" id="clear-chat">
+                    <i class="fa fa-trash"/>
+                </button>
+            </div>
+            <div class="chatbot-models">
+                <t t-foreach="models" t-as="key" t-key="key">
+                    <button class="btn btn-sm model-select" 
+                            t-att-data-model="key"
+                            t-att-class="'model-select ' + (key == current_model ? 'active' : '')">
+                        <t t-esc="models[key].label"/>
+                    </button>
+                </t>
+            </div>
+            <div class="chat-messages">
+                <t t-foreach="messages" t-as="msg" t-key="msg_index">
+                    <div class="chat-message" t-att-class="'chat-message ' + (msg.is_bot ? 'bot' : 'user')">
+                        <div class="message-avatar">
+                            <i t-if="msg.is_bot" class="fa fa-robot"/>
+                            <i t-if="!msg.is_bot" class="fa fa-user"/>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-text" t-esc="msg.message"/>
+                            <div class="message-time" t-esc="msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : ''"/>
+                        </div>
+                    </div>
+                </t>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" class="form-control" placeholder="Nhập câu hỏi của bạn..."/>
+                <button class="btn btn-primary" id="send-message">
+                    <i class="fa fa-paper-plane"/>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

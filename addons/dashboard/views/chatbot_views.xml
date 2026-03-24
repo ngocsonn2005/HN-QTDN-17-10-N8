@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Record cho action client -->
+    <record id="action_chatbot" model="ir.actions.client">
+        <field name="name">Trợ lý AI</field>
+        <field name="tag">chatbot</field>
+        <field name="target">main</field>
+    </record>
+
+    <record id="view_chat_history_tree" model="ir.ui.view">
+        <field name="name">chat.history.tree</field>
+        <field name="model">chat.history</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="user_id"/>
+                <field name="session_id"/>
+                <field name="message"/>
+                <field name="is_bot"/>
+                <field name="message_type"/>
+                <field name="timestamp"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_chat_history" model="ir.actions.act_window">
+        <field name="name">Lịch sử chat AI</field>
+        <field name="res_model">chat.history</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_chatbot" 
+              name="Trợ lý AI" 
+              parent="menu_dashboard_root"
+              action="action_chatbot" 
+              sequence="15"
+              groups="base.group_user"/>
+    
+    <menuitem id="menu_chat_history" 
+              name="Lịch sử chat" 
+              parent="menu_dashboard_root"
+              action="action_chat_history" 
+              sequence="30"
+              groups="base.group_user"/>
+</odoo>

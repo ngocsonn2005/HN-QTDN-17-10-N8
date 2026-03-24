@@ -6,8 +6,13 @@ odoo.define('dashboard.dashboard', function(require) {
     var rpc = require('web.rpc');
 
     var Dashboard = AbstractAction.extend({
+        init: function(parent, action) {
+            this._super(parent, action);
+            this.ageChart = null;
+            this.docChart = null;
+        },
+
         start: function() {
-            var self = this;
             this._renderDashboard();
             this.load_data();
             this._startAutoRefresh();
@@ -18,13 +23,26 @@ odoo.define('dashboard.dashboard', function(require) {
             var self = this;
             setInterval(function() {
                 self.load_data(true);
-            }, 300000);
+            }, 300000); // 5 phút
+        },
+
+        _getCurrentDateTime: function() {
+            var now = new Date();
+            return now.toLocaleDateString('vi-VN', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         },
 
         _renderDashboard: function() {
+            var self = this;
             var html = `
                 <div class="o_dashboard">
-                    <!-- Header với thời gian -->
+                    <!-- Header -->
                     <div class="dashboard-header">
                         <div class="header-left">
                             <h2>
@@ -33,7 +51,7 @@ odoo.define('dashboard.dashboard', function(require) {
                             </h2>
                             <p class="text-muted">
                                 <i class="fa fa-calendar"></i> 
-                                <span id="current-datetime">${this._getCurrentDateTime()}</span>
+                                <span id="current-datetime"></span>
                             </p>
                         </div>
                         <div class="header-right">
@@ -54,7 +72,6 @@ odoo.define('dashboard.dashboard', function(require) {
                                 <span class="kpi-value tong-nv">0</span>
                             </div>
                         </div>
-
                         <div class="kpi-card">
                             <div class="kpi-icon bg-success">
                                 <i class="fa fa-handshake-o"></i>
@@ -64,7 +81,6 @@ odoo.define('dashboard.dashboard', function(require) {
                                 <span class="kpi-value tong-kh">0</span>
                             </div>
                         </div>
-
                         <div class="kpi-card">
                             <div class="kpi-icon bg-warning">
                                 <i class="fa fa-file-text"></i>
@@ -74,7 +90,6 @@ odoo.define('dashboard.dashboard', function(require) {
                                 <span class="kpi-value tong-vb">0</span>
                             </div>
                         </div>
-
                         <div class="kpi-card">
                             <div class="kpi-icon bg-info">
                                 <i class="fa fa-tasks"></i>
@@ -95,13 +110,12 @@ odoo.define('dashboard.dashboard', function(require) {
                             <div class="chart-body">
                                 <canvas id="ageChart" width="400" height="200"></canvas>
                                 <div class="chart-stats">
-                                    <div class="stat-badge"><30: <span class="nv-duoi30">0</span></div>
+                                    <div class="stat-badge">&lt;30: <span class="nv-duoi30">0</span></div>
                                     <div class="stat-badge">30-45: <span class="nv-30-45">0</span></div>
-                                    <div class="stat-badge">>45: <span class="nv-tren45">0</span></div>
+                                    <div class="stat-badge">&gt;45: <span class="nv-tren45">0</span></div>
                                 </div>
                             </div>
                         </div>
-
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h4><i class="fa fa-line-chart"></i> Xu hướng văn bản</h4>
@@ -119,7 +133,6 @@ odoo.define('dashboard.dashboard', function(require) {
 
                     <!-- Detailed Stats Cards -->
                     <div class="dashboard-grid">
-                        <!-- Nhân sự card chi tiết -->
                         <div class="dashboard-card">
                             <div class="card-header bg-primary-gradient">
                                 <i class="fa fa-users mr-2"></i> Nhân sự
@@ -148,7 +161,6 @@ odoo.define('dashboard.dashboard', function(require) {
                             </div>
                         </div>
 
-                        <!-- Khách hàng card chi tiết -->
                         <div class="dashboard-card">
                             <div class="card-header bg-success-gradient">
                                 <i class="fa fa-handshake-o mr-2"></i> Khách hàng & Hỗ trợ
@@ -179,7 +191,6 @@ odoo.define('dashboard.dashboard', function(require) {
                             </div>
                         </div>
 
-                        <!-- Văn bản card chi tiết -->
                         <div class="dashboard-card">
                             <div class="card-header bg-warning-gradient">
                                 <i class="fa fa-file-text-o mr-2"></i> Văn bản
@@ -224,34 +235,26 @@ odoo.define('dashboard.dashboard', function(require) {
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Kết quả dự đoán -->
                         <div id="prediction_result" class="prediction-result"></div>
                     </div>
                 </div>
             `;
             
             this.$el.html(html);
+            this.$('#current-datetime').text(this._getCurrentDateTime());
             this._initEventHandlers();
             this._loadEmployees();
+            
+            // Cập nhật thời gian mỗi phút
+            setInterval(function() {
+                self.$('#current-datetime').text(self._getCurrentDateTime());
+            }, 60000);
         },
 
         _initEventHandlers: function() {
             this.$('#train_ai_button').click(this.train_ai.bind(this));
             this.$('#predict_button').click(this.predict_staff.bind(this));
-            this.$('#refresh-btn').click(() => this.load_data());
-        },
-
-        _getCurrentDateTime: function() {
-            var now = new Date();
-            return now.toLocaleDateString('vi-VN', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            this.$('#refresh-btn').click(this.load_data.bind(this, false));
         },
 
         _loadEmployees: function() {
@@ -264,7 +267,10 @@ odoo.define('dashboard.dashboard', function(require) {
                 var select = self.$('#employee-select');
                 select.empty().append('<option value="">Chọn nhân viên...</option>');
                 employees.forEach(function(emp) {
-                    select.append(`<option value="${emp.id}">${emp.ho_va_ten}</option>`);
+                    select.append($('<option>', {
+                        value: emp.id,
+                        text: emp.ho_va_ten
+                    }));
                 });
             }).catch(function(error) {
                 console.error("Error loading employees:", error);
@@ -295,22 +301,30 @@ odoo.define('dashboard.dashboard', function(require) {
         update_display: function(data) {
             if (data.error) {
                 console.error("Data error:", data.error);
+                this.$('#prediction_result').html(`
+                    <div class="alert alert-danger">
+                        <i class="fa fa-exclamation-circle"></i> 
+                        Lỗi tải dữ liệu: ${data.error}
+                    </div>
+                `);
                 return;
             }
             
+            // Cập nhật nhân sự
             this.$('.tong-nv').text(data.nhan_su.tong || 0);
             this.$('.nv-duoi30').text(data.nhan_su.duoi30 || 0);
             this.$('.nv-30-45').text(data.nhan_su['30_45'] || 0);
             this.$('.nv-tren45').text(data.nhan_su.tren45 || 0);
             this.$('.tuoi-tb').text(data.nhan_su.tuoi_tb || 0);
             
+            // Cập nhật khách hàng
             this.$('.tong-kh').text(data.khach_hang.tong || 0);
             this.$('.tong-ht').text(data.khach_hang.ho_tro.tong || 0);
             this.$('.ht-moi').text(data.khach_hang.ho_tro.moi || 0);
             this.$('.ht-cho').text(data.khach_hang.ho_tro.cho || 0);
-            this.$('.danh-gia').text(data.khach_hang.ho_tro.danh_gia || 0);
             this._updateRatingStars(data.khach_hang.ho_tro.danh_gia || 0);
             
+            // Cập nhật văn bản
             this.$('.tong-vb').text(data.van_ban.tong || 0);
             this.$('.vb-thang-nay').text(data.van_ban.thang_nay || 0);
             this.$('.vb-thang-truoc').text(data.van_ban.thang_truoc || 0);
@@ -321,26 +335,39 @@ odoo.define('dashboard.dashboard', function(require) {
 
         _updateRatingStars: function(rating) {
             var stars = '';
+            var fullStars = Math.floor(rating);
+            var hasHalf = rating - fullStars >= 0.5;
+            
             for (var i = 1; i <= 5; i++) {
-                if (i <= Math.round(rating)) {
+                if (i <= fullStars) {
                     stars += '<i class="fa fa-star star-filled"></i>';
+                } else if (i === fullStars + 1 && hasHalf) {
+                    stars += '<i class="fa fa-star-half-o star-filled"></i>';
                 } else {
                     stars += '<i class="fa fa-star-o star-empty"></i>';
                 }
             }
+            stars += ' <span style="margin-left: 5px;">(' + rating + '/5)</span>';
             this.$('#rating-stars').html(stars);
         },
 
         _updateCharts: function(data) {
-            this._createAgeChart(data);
-            this._createDocumentChart(data);
+            // Đợi Chart.js load xong
+            var self = this;
+            var checkChart = setInterval(function() {
+                if (typeof Chart !== 'undefined') {
+                    clearInterval(checkChart);
+                    self._createAgeChart(data);
+                    self._createDocumentChart(data);
+                }
+            }, 100);
         },
 
         _createAgeChart: function(data) {
-            var ctx = document.getElementById('ageChart');
-            if (!ctx) return;
+            var canvas = document.getElementById('ageChart');
+            if (!canvas) return;
             
-            ctx = ctx.getContext('2d');
+            var ctx = canvas.getContext('2d');
             
             if (this.ageChart) {
                 this.ageChart.destroy();
@@ -357,23 +384,29 @@ odoo.define('dashboard.dashboard', function(require) {
                             data.nhan_su.tren45 || 0
                         ],
                         backgroundColor: ['#4e73df', '#1cc88a', '#f6c23e'],
-                        borderWidth: 0
+                        borderWidth: 0,
+                        hoverOffset: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     cutout: '70%',
-                    plugins: { legend: { display: false } }
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: function(context) {
+                            return context.label + ': ' + context.raw + ' người';
+                        }}}
+                    }
                 }
             });
         },
 
         _createDocumentChart: function(data) {
-            var ctx = document.getElementById('docChart');
-            if (!ctx) return;
+            var canvas = document.getElementById('docChart');
+            if (!canvas) return;
             
-            ctx = ctx.getContext('2d');
+            var ctx = canvas.getContext('2d');
             
             if (this.docChart) {
                 this.docChart.destroy();
@@ -388,15 +421,30 @@ odoo.define('dashboard.dashboard', function(require) {
                         data: [data.van_ban.thang_truoc || 0, data.van_ban.thang_nay || 0],
                         borderColor: '#4e73df',
                         backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                        borderWidth: 2,
                         tension: 0.4,
-                        fill: true
+                        fill: true,
+                        pointBackgroundColor: '#4e73df',
+                        pointBorderColor: '#fff',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: function(context) {
+                            return context.dataset.label + ': ' + context.raw;
+                        }}}
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
                 }
             });
         },
@@ -405,60 +453,54 @@ odoo.define('dashboard.dashboard', function(require) {
             var self = this;
             var resultDiv = this.$('#prediction_result');
             
-            resultDiv.html('<div class="loading-spinner"><i class="fa fa-spinner fa-spin"></i> Đang huấn luyện AI model...</div>');
+            resultDiv.html(`
+                <div class="loading-spinner">
+                    <i class="fa fa-spinner fa-spin"></i> 
+                    Đang huấn luyện AI model... (có thể mất vài phút)
+                </div>
+            `);
             
-            // Gọi route đã thêm vào controllers.py
             rpc.query({
                 route: '/ai/train_model',
             }).then(function(result) {
-                console.log("Train result:", result);
-                
                 if (result && result.params) {
                     if (result.params.type === 'danger') {
                         resultDiv.html(`
                             <div class="alert alert-danger">
-                                <i class="fa fa-exclamation-circle"></i> <strong>${result.params.title}</strong>
-                                <br><small>${result.params.message}</small>
+                                <i class="fa fa-exclamation-circle"></i> 
+                                <strong>${result.params.title}</strong>
+                                <br><small>${result.params.message || ''}</small>
                             </div>
                         `);
                     } else {
                         resultDiv.html(`
                             <div class="alert alert-success">
-                                <i class="fa fa-check-circle"></i> <strong>${result.params.title}</strong>
-                                <br><small>${result.params.message.replace(/\n/g, '<br>')}</small>
+                                <i class="fa fa-check-circle"></i> 
+                                <strong>${result.params.title || 'Huấn luyện thành công!'}</strong>
+                                <br><small>${(result.params.message || 'Model AI đã được huấn luyện và sẵn sàng sử dụng.').replace(/\n/g, '<br>')}</small>
                             </div>
                         `);
                     }
                 } else {
                     resultDiv.html(`
                         <div class="alert alert-success">
-                            <i class="fa fa-check-circle"></i> <strong>Huấn luyện thành công!</strong>
+                            <i class="fa fa-check-circle"></i> 
+                            <strong>Huấn luyện thành công!</strong>
                             <br><small>Model AI đã được huấn luyện và sẵn sàng sử dụng.</small>
                         </div>
                     `);
                 }
             }).catch(function(error) {
                 console.error("Train AI error:", error);
-                
-                let errorMessage = 'Không xác định';
-                if (error.message) {
-                    errorMessage = error.message;
-                } else if (error.data && error.data.message) {
-                    errorMessage = error.data.message;
-                } else if (error.data && error.data.arguments && error.data.arguments[0]) {
-                    errorMessage = error.data.arguments[0];
-                }
+                var errorMessage = error.message || error.data?.message || error.data?.arguments?.[0] || 'Không xác định';
                 
                 resultDiv.html(`
-                    <div class="alert alert-danger">
-                        <i class="fa fa-exclamation-circle"></i> <strong>Lỗi huấn luyện AI</strong>
+                    <div class="alert alert-warning">
+                        <i class="fa fa-exclamation-triangle"></i> 
+                        <strong>Thông báo</strong>
                         <br><small>${errorMessage}</small>
-                        <br><br>
-                        <strong>Thông tin:</strong>
-                        <ul>
-                            <li>Model đã được huấn luyện thành công từ AI Model Manager</li>
-                            <li>Vui lòng làm mới trang và thử lại dự đoán</li>
-                        </ul>
+                        <hr>
+                        <small>Model đã được huấn luyện từ AI Model Manager. Bạn vẫn có thể sử dụng dự đoán.</small>
                     </div>
                 `);
             });
@@ -467,7 +509,12 @@ odoo.define('dashboard.dashboard', function(require) {
         predict_staff: function() {
             var nv_id = this.$('#employee-select').val();
             if (!nv_id) {
-                alert("Vui lòng chọn nhân viên!");
+                this.$('#prediction_result').html(`
+                    <div class="alert alert-warning">
+                        <i class="fa fa-warning"></i> 
+                        Vui lòng chọn nhân viên để dự đoán!
+                    </div>
+                `);
                 return;
             }
             this.call_predict(parseInt(nv_id));
@@ -477,19 +524,34 @@ odoo.define('dashboard.dashboard', function(require) {
             var self = this;
             var resultDiv = this.$('#prediction_result');
             
-            resultDiv.html('<div class="loading-spinner"><i class="fa fa-spinner fa-spin"></i> Đang xử lý dự đoán...</div>');
+            resultDiv.html(`
+                <div class="loading-spinner">
+                    <i class="fa fa-spinner fa-spin"></i> 
+                    Đang phân tích dữ liệu và dự đoán...
+                </div>
+            `);
             
             rpc.query({
                 route: '/ai/predict/' + nv_id,
             }).then(function(result) {
                 if (result.error) {
-                    resultDiv.html(`<div class="alert alert-danger">Lỗi: ${result.error}</div>`);
+                    resultDiv.html(`
+                        <div class="alert alert-danger">
+                            <i class="fa fa-exclamation-circle"></i> 
+                            Lỗi: ${result.error}
+                        </div>
+                    `);
                 } else {
                     self._renderPredictionResult(result);
                 }
             }).catch(function(error) {
                 console.error("Predict error:", error);
-                resultDiv.html('<div class="alert alert-danger">Lỗi kết nối đến AI service</div>');
+                resultDiv.html(`
+                    <div class="alert alert-danger">
+                        <i class="fa fa-exclamation-circle"></i> 
+                        Lỗi kết nối đến AI service: ${error.message || 'Không xác định'}
+                    </div>
+                `);
             });
         },
 
@@ -514,12 +576,17 @@ odoo.define('dashboard.dashboard', function(require) {
                 statusIcon = '⚪';
             }
             
+            var confidenceClass = '';
+            if (result.do_tin_cay >= 75) confidenceClass = 'confidence-high';
+            else if (result.do_tin_cay >= 50) confidenceClass = 'confidence-medium';
+            else confidenceClass = 'confidence-low';
+            
             var resultHtml = `
                 <div class="prediction-card">
                     <div class="prediction-header">
                         <i class="fa fa-robot"></i>
-                        <h4>Kết quả dự đoán cho <span class="employee-name">${result.nhan_vien}</span></h4>
-                        <span class="status-badge ${statusClass}">${statusIcon} ${result.khuyen_nghi.split('!')[0]}</span>
+                        <h4>Kết quả dự đoán cho <span class="employee-name">${this._escapeHtml(result.nhan_vien)}</span></h4>
+                        <span class="status-badge ${statusClass}">${statusIcon} ${this._escapeHtml(result.khuyen_nghi.split('!')[0])}</span>
                     </div>
                     <div class="prediction-body">
                         <div class="prediction-stats">
@@ -529,17 +596,18 @@ odoo.define('dashboard.dashboard', function(require) {
                             </div>
                             <div class="prediction-stat">
                                 <span class="stat-label">Độ tin cậy</span>
-                                <span class="stat-value confidence-${Math.floor(result.do_tin_cay/25)*25}">${result.do_tin_cay}%</span>
+                                <span class="stat-value ${confidenceClass}">${result.do_tin_cay}%</span>
                             </div>
                         </div>
                         <div class="workload-history">
                             <h5>Lịch sử 4 tuần gần nhất:</h5>
                             <div class="trend-bars">
-                                ${result.lich_su.map((value, index) => `
-                                    <div class="trend-bar" style="height: ${Math.min(value * 5, 100)}px">
-                                        <span class="bar-value">${value}</span>
-                                    </div>
-                                `).join('')}
+                                ${result.lich_su.map(function(value, index) {
+                                    var height = Math.min(value * 5, 100);
+                                    return '<div class="trend-bar" style="height: ' + height + 'px">' +
+                                        '<span class="bar-value">' + value + '</span>' +
+                                    '</div>';
+                                }).join('')}
                             </div>
                             <div class="trend-labels">
                                 <span>Tuần 4</span>
@@ -552,19 +620,29 @@ odoo.define('dashboard.dashboard', function(require) {
                             <div class="rec-icon ${statusClass}">
                                 ${statusIcon}
                             </div>
-                            <div class="rec-text">${result.khuyen_nghi}</div>
+                            <div class="rec-text">${this._escapeHtml(result.khuyen_nghi)}</div>
                         </div>
                     </div>
                 </div>
             `;
             this.$('#prediction_result').html(resultHtml);
+        },
+        
+        _escapeHtml: function(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(text));
+            return div.innerHTML;
         }
     });
 
-    // Load Chart.js
+    // Load Chart.js nếu chưa có
     if (typeof Chart === 'undefined') {
         var script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
+        script.onload = function() {
+            console.log('Chart.js loaded successfully');
+        };
         document.head.appendChild(script);
     }
 

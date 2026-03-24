@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="DashboardTemplate" owl="1">
+        <div class="o_dashboard">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <div class="header-left">
+                    <h2><i class="fa fa-dashboard"/> Dashboard tổng hợp</h2>
+                    <p class="text-muted">
+                        <i class="fa fa-calendar"/> 
+                        <span id="current-datetime" t-esc="getCurrentDateTime()"/>
+                    </p>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-refresh" id="refresh-btn">
+                        <i class="fa fa-refresh"/> Làm mới
+                    </button>
+                </div>
+            </div>
+            
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon bg-primary"><i class="fa fa-users"/></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Tổng nhân viên</span>
+                        <span class="kpi-value tong-nv">0</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon bg-success"><i class="fa fa-handshake-o"/></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Tổng khách hàng</span>
+                        <span class="kpi-value tong-kh">0</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon bg-warning"><i class="fa fa-file-text"/></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Tổng văn bản</span>
+                        <span class="kpi-value tong-vb">0</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon bg-info"><i class="fa fa-tasks"/></div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Hỗ trợ đang chờ</span>
+                        <span class="kpi-value ht-cho">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h4><i class="fa fa-pie-chart"/> Phân bố nhân viên theo độ tuổi</h4>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="ageChart" width="400" height="200"/>
+                        <div class="chart-stats">
+                            <div class="stat-badge">&lt;30: <span class="nv-duoi30">0</span></div>
+                            <div class="stat-badge">30-45: <span class="nv-30-45">0</span></div>
+                            <div class="stat-badge">&gt;45: <span class="nv-tren45">0</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h4><i class="fa fa-line-chart"/> Xu hướng văn bản</h4>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="docChart" width="400" height="200"/>
+                        <div class="chart-stats">
+                            <div class="stat-badge">Tháng này: <span class="vb-thang-nay">0</span></div>
+                            <div class="stat-badge">Tháng trước: <span class="vb-thang-truoc">0</span></div>
+                            <div class="stat-badge">Tăng trưởng: <span class="tang-truong">0%</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ... Phần còn lại của dashboard ... -->
+            
+            <!-- AI Section -->
+            <div class="ai-section">
+                <div class="ai-header">
+                    <div class="ai-title">
+                        <i class="fa fa-robot"/>
+                        <h3>Trợ lý AI thông minh</h3>
+                    </div>
+                    <div class="ai-controls">
+                        <select id="employee-select" class="employee-select">
+                            <option value="">Chọn nhân viên...</option>
+                        </select>
+                        <button class="btn-ai" id="train_ai_button">
+                            <i class="fa fa-brain"/> Huấn luyện AI
+                        </button>
+                        <button class="btn-ai" id="predict_button">
+                            <i class="fa fa-magic"/> Dự đoán
+                        </button>
+                    </div>
+                </div>
+                <div id="prediction_result" class="prediction-result"/>
+            </div>
+        </div>
+    </t>
+</templates>

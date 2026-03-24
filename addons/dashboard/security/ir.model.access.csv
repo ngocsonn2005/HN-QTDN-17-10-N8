@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_ai_prediction,ai.prediction,model_ai_prediction,base.group_user,1,1,1,1
 access_ai_model_manager,ai.model.manager,model_ai_model_manager,base.group_user,1,1,1,1
+access_chat_history,chat.history,model_chat_history,base.group_user,1,1,1,1
+access_chatbot_service,chatbot.service,model_chatbot_service,base.group_user,1,0,0,0

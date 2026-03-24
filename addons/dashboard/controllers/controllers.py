@@ -166,19 +166,12 @@ class DashboardAI(http.Controller):
             _logger.info("=== PREDICT FOR: %s (ID: %s) ===", nhan_vien.ho_va_ten, nhan_vien.id)
             _logger.info("Current date: %s", today.strftime('%Y-%m-%d %H:%M:%S'))
             
-            # Tính từ tuần gần nhất (week=1) đến tuần xa nhất (week=4)
-            # week=1: từ 0-7 ngày trước (gần nhất)
-            # week=2: từ 7-14 ngày trước
-            # week=3: từ 14-21 ngày trước
-            # week=4: từ 21-28 ngày trước
             for week in range(1, 5):
-                # Tính ngày bắt đầu và kết thúc của tuần
                 end_date = today - timedelta(days=7*(week-1))
                 start_date = today - timedelta(days=7*week)
                 
                 _logger.info("Week %s: from %s to %s", week, start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
                 
-                # Văn bản xử lý
                 vb_count = 0
                 if 'van_ban_den' in request.env:
                     vb_count = request.env['van_ban_den'].search_count([
@@ -187,7 +180,6 @@ class DashboardAI(http.Controller):
                         ('ngay_van_ban', '<', end_date.date())
                     ])
                 
-                # Hỗ trợ khách hàng
                 ht_count = 0
                 if 'ho_tro_khach_hang' in request.env:
                     ht_count = request.env['ho_tro_khach_hang'].search_count([
@@ -199,20 +191,15 @@ class DashboardAI(http.Controller):
                 lich_su.append(vb_count + ht_count)
                 _logger.info("Week %s: VB=%s, HT=%s, Total=%s", week, vb_count, ht_count, vb_count + ht_count)
             
-            # Dự đoán bằng trung bình động (tuần gần nhất trọng số cao)
             if sum(lich_su) == 0:
                 du_doan = 0
                 do_tin_cay = 0
             else:
-                # lich_su[0] = tuần 1 (gần nhất), lich_su[3] = tuần 4 (xa nhất)
                 du_doan = round(lich_su[0]*0.4 + lich_su[1]*0.3 + lich_su[2]*0.2 + lich_su[3]*0.1, 1)
-                
-                # Độ tin cậy dựa trên độ biến động
                 avg = sum(lich_su) / 4
                 bien_dong = sum(abs(x - avg) for x in lich_su) / 4
                 do_tin_cay = round(max(50, min(95, 100 - bien_dong * 5)), 1)
             
-            # Lưu dự đoán
             try:
                 if 'ai.prediction' in request.env:
                     request.env['ai.prediction'].create({
@@ -223,7 +210,6 @@ class DashboardAI(http.Controller):
             except Exception as e:
                 _logger.warning("Could not save prediction: %s", str(e))
             
-            # Khuyến nghị
             if du_doan > 15:
                 khuyen_nghi = "🔴 NHÂN VIÊN QUÁ TẢI! Cần phân công lại công việc."
             elif du_doan > 10:
@@ -252,10 +238,8 @@ class DashboardAI(http.Controller):
         try:
             _logger.info("=== TRAIN MODEL ROUTE CALLED ===")
             
-            # Lấy model manager đang hoạt động
             model_manager = request.env['ai.model.manager'].search([('is_active', '=', True)], limit=1)
             if not model_manager:
-                # Tạo mới model manager
                 model_manager = request.env['ai.model.manager'].create({
                     'name': 'AI Prediction Model',
                     'model_type': 'random_forest',
@@ -263,7 +247,6 @@ class DashboardAI(http.Controller):
                 })
                 _logger.info("Đã tạo mới AI Model Manager")
             
-            # Gọi hàm huấn luyện
             result = model_manager.action_train_model()
             
             _logger.info("Train result: %s", result)
@@ -281,3 +264,165 @@ class DashboardAI(http.Controller):
                     'sticky': True
                 }
             }
+    
+    @http.route('/chatbot/test', type='json', auth='user', methods=['POST'], csrf=False)
+    def chatbot_test(self):
+        """Route test để kiểm tra dữ liệu nhận được"""
+        try:
+            _logger.info("=== CHATBOT TEST ROUTE ===")
+            _logger.info("Request method: %s", request.httprequest.method)
+            _logger.info("Request data: %s", request.httprequest.data)
+            _logger.info("Request params: %s", request.params)
+            
+            # Thử đọc dữ liệu theo nhiều cách
+            data1 = request.params
+            data2 = request.jsonrequest
+            data3 = {}
+            
+            # Đọc raw data
+            if request.httprequest.data:
+                try:
+                    data3 = json.loads(request.httprequest.data.decode('utf-8'))
+                except:
+                    pass
+            
+            question = ''
+            if data1 and data1.get('question'):
+                question = data1.get('question')
+            elif data2 and data2.get('question'):
+                question = data2.get('question')
+            elif data3 and data3.get('question'):
+                question = data3.get('question')
+            
+            _logger.info("Question from params: %s", data1.get('question') if data1 else None)
+            _logger.info("Question from jsonrequest: %s", data2.get('question') if data2 else None)
+            _logger.info("Question from raw: %s", data3.get('question') if data3 else None)
+            _logger.info("Final question: %s", question)
+            
+            return {
+                'success': True,
+                'received_data': {
+                    'params': data1,
+                    'jsonrequest': data2,
+                    'raw': data3,
+                },
+                'question': question
+            }
+        except Exception as e:
+            _logger.error("Test error: %s", str(e), exc_info=True)
+            return {'success': False, 'error': str(e)}
+    
+    @http.route('/chatbot/ask', type='json', auth='user', methods=['POST'], csrf=False)
+    def chatbot_ask(self):
+        """Gửi câu hỏi đến chatbot"""
+        try:
+            _logger.info("=== CHATBOT ASK ROUTE ===")
+            
+            # Thử đọc dữ liệu từ nhiều nguồn
+            data = {}
+            
+            # Cách 1: request.params
+            if request.params:
+                data.update(request.params)
+                _logger.info("Data from params: %s", request.params)
+            
+            # Cách 2: request.jsonrequest
+            if request.jsonrequest:
+                data.update(request.jsonrequest)
+                _logger.info("Data from jsonrequest: %s", request.jsonrequest)
+            
+            # Cách 3: Đọc raw data
+            if request.httprequest.data:
+                try:
+                    raw_data = json.loads(request.httprequest.data.decode('utf-8'))
+                    data.update(raw_data)
+                    _logger.info("Data from raw: %s", raw_data)
+                except Exception as e:
+                    _logger.warning("Cannot parse raw data: %s", e)
+            
+            question = data.get('question', '')
+            model_key = data.get('model_key', None)
+            session_id = data.get('session_id', None)
+            
+            _logger.info("Final question: '%s'", question)
+            _logger.info("Question length: %d", len(question))
+            
+            if not question or question.strip() == '':
+                _logger.warning("Empty question received")
+                return {'success': False, 'error': 'Vui lòng nhập câu hỏi.'}
+            
+            chatbot_service = request.env['chatbot.service']
+            result = chatbot_service.ask(question, model_key, session_id)
+            
+            _logger.info("Result from service: %s", result.get('success', False))
+            return result
+            
+        except Exception as e:
+            _logger.error("Chatbot error: %s", str(e), exc_info=True)
+            return {'success': False, 'error': str(e)}
+    
+    @http.route('/chatbot/history', type='json', auth='user', methods=['POST'], csrf=False)
+    def chatbot_history(self):
+        """Lấy lịch sử chat của user"""
+        try:
+            data = request.params
+            session_id = data.get('session_id', None)
+            limit = data.get('limit', 50)
+            
+            _logger.info("Chatbot history - session: %s, limit: %s", session_id, limit)
+            
+            chat_history = request.env['chat.history']
+            
+            if session_id:
+                messages = chat_history.get_session_messages(session_id)
+            else:
+                messages = chat_history.get_user_chat_history(limit)
+            
+            return {
+                'success': True,
+                'messages': messages,
+                'session_id': session_id
+            }
+            
+        except Exception as e:
+            _logger.error("Chatbot history error: %s", str(e))
+            return {'success': False, 'error': str(e)}
+    
+    @http.route('/chatbot/clear_history', type='json', auth='user', methods=['POST'], csrf=False)
+    def chatbot_clear_history(self):
+        """Xóa lịch sử chat của user"""
+        try:
+            data = request.params
+            session_id = data.get('session_id', None)
+            days = data.get('days', 30)
+            
+            _logger.info("Chatbot clear history - session: %s, days: %s", session_id, days)
+            
+            chat_history = request.env['chat.history']
+            
+            if session_id:
+                records = chat_history.search([('session_id', '=', session_id)])
+                count = len(records)
+                records.unlink()
+                return {'success': True, 'deleted': count}
+            else:
+                count = chat_history.cleanup_old_history(days)
+                return {'success': True, 'deleted': count}
+            
+        except Exception as e:
+            _logger.error("Chatbot clear history error: %s", str(e))
+            return {'success': False, 'error': str(e)}
+    
+    @http.route('/chatbot/models', type='json', auth='user', methods=['GET', 'POST'], csrf=False)
+    def chatbot_models(self):
+        """Lấy danh sách model AI được hỗ trợ"""
+        try:
+            chatbot_service = request.env['chatbot.service']
+            return {
+                'success': True,
+                'models': chatbot_service.SUPPORTED_MODELS,
+                'default': chatbot_service.DEFAULT_MODEL_KEY
+            }
+        except Exception as e:
+            _logger.error("Chatbot models error: %s", str(e))
+            return {'success': False, 'error': str(e)}
