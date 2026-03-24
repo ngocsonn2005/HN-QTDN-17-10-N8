@@ -136,6 +136,22 @@ class ChatbotService(models.AbstractModel):
         if 'yêu cầu' in question_lower or 'yeu cau' in question_lower:
             context_data['customer_requests'] = self._get_customer_requests()
 
+        # --- THÊM MỚI: Khách hàng ---
+        if 'khách hàng' in question_lower or 'khach hang' in question_lower:
+            context_data['customers'] = self._get_customers()
+            
+        # --- THÊM MỚI: Khách hàng tiềm năng ---
+        if 'tiềm năng' in question_lower or 'tiem nang' in question_lower:
+            context_data['potential_customers'] = self._get_potential_customers()
+            
+        # --- THÊM MỚI: Hỗ trợ khách hàng ---
+        if 'hỗ trợ' in question_lower or 'ho tro' in question_lower:
+            context_data['customer_supports'] = self._get_customer_supports()
+            
+        # --- THÊM MỚI: Loại khách hàng ---
+        if 'loại khách hàng' in question_lower or 'loai khach hang' in question_lower:
+            context_data['customer_types'] = self._get_customer_types()
+
         # --- Thống kê tổng quan (luôn lấy) ---
         context_data['statistics'] = self._get_statistics()
 
@@ -436,6 +452,119 @@ class ChatbotService(models.AbstractModel):
             _logger.warning("Không thể truy vấn yêu cầu khách hàng: %s", str(e))
             return []
 
+    # ==================== THÊM MỚI: CÁC METHOD VỀ KHÁCH HÀNG ====================
+
+    @api.model
+    def _get_customers(self, limit=50):
+        """Lấy danh sách khách hàng"""
+        try:
+            if 'khach_hang' not in self.env:
+                _logger.warning("Model khach_hang không tồn tại")
+                return []
+            
+            KhachHang = self.env['khach_hang']
+            customers = KhachHang.search([], limit=limit)
+            
+            _logger.info("Found %d customers", len(customers))
+            
+            result = []
+            for c in customers:
+                cust_data = {
+                    'ma_khach_hang': c.ma_khach_hang if hasattr(c, 'ma_khach_hang') else '',
+                    'ten_khach_hang': c.ten_khach_hang if hasattr(c, 'ten_khach_hang') else '',
+                    'loai_khach': c.loai_khach if hasattr(c, 'loai_khach') else '',
+                    'dien_thoai': c.dien_thoai if hasattr(c, 'dien_thoai') else '',
+                    'email': c.email if hasattr(c, 'email') else '',
+                    'dia_chi': c.dia_chi[:100] if hasattr(c, 'dia_chi') and c.dia_chi else '',
+                    'trang_thai': c.trang_thai if hasattr(c, 'trang_thai') else '',
+                    'nhan_vien_phu_trach': c.nhan_vien_phu_trach_id.ho_va_ten if hasattr(c, 'nhan_vien_phu_trach_id') and c.nhan_vien_phu_trach_id else '',
+                }
+                result.append(cust_data)
+            
+            return result
+        except Exception as e:
+            _logger.error("Không thể truy vấn khách hàng: %s", str(e))
+            return []
+
+    @api.model
+    def _get_potential_customers(self, limit=20):
+        """Lấy danh sách khách hàng tiềm năng"""
+        try:
+            if 'khach_hang_tiem_nang' not in self.env:
+                _logger.info("Model khach_hang_tiem_nang không tồn tại")
+                return []
+            
+            TiemNang = self.env['khach_hang_tiem_nang']
+            potentials = TiemNang.search([], limit=limit)
+            
+            result = []
+            for p in potentials:
+                giai_doan_map = {
+                    '1': 'Tiếp cận',
+                    '2': 'Đàm phán', 
+                    '3': 'Ký hợp đồng',
+                    '4': 'Thất bại'
+                }
+                result.append({
+                    'khach_hang': p.khach_hang_id.ten_khach_hang if p.khach_hang_id else '',
+                    'giai_doan': giai_doan_map.get(p.giai_doan, p.giai_doan),
+                    'doanh_thu_tiem_nang': p.doanh_thu_tiem_nang,
+                    'ngay_du_kien': str(p.ngay_du_kien_ky_hop_dong) if p.ngay_du_kien_ky_hop_dong else '',
+                    'ngay_tao': str(p.ngay_tao) if p.ngay_tao else '',
+                })
+            return result
+        except Exception as e:
+            _logger.error("Không thể truy vấn khách hàng tiềm năng: %s", str(e))
+            return []
+
+    @api.model
+    def _get_customer_supports(self, limit=30):
+        """Lấy danh sách hỗ trợ khách hàng"""
+        try:
+            if 'ho_tro_khach_hang' not in self.env:
+                _logger.info("Model ho_tro_khach_hang không tồn tại")
+                return []
+            
+            HoTro = self.env['ho_tro_khach_hang']
+            supports = HoTro.search([], limit=limit)
+            
+            result = []
+            for s in supports:
+                trang_thai_map = {
+                    'pending': 'Đang chờ',
+                    'in_progress': 'Đang xử lý',
+                    'resolved': 'Đã giải quyết'
+                }
+                result.append({
+                    'khach_hang': s.ten_khach_hang.ten_khach_hang if s.ten_khach_hang else '',
+                    'phuong_thuc': dict(s._fields['phuong_thuc_lien_lac'].selection).get(s.phuong_thuc_lien_lac),
+                    'thoi_gian_bat_dau': str(s.thoi_gian_bat_dau) if s.thoi_gian_bat_dau else '',
+                    'trang_thai': trang_thai_map.get(s.trang_thai, s.trang_thai),
+                    'nhan_vien': s.nhan_vien_phu_trach.ho_va_ten if s.nhan_vien_phu_trach else '',
+                    'diem_danh_gia': s.diem_danh_gia,
+                })
+            return result
+        except Exception as e:
+            _logger.error("Không thể truy vấn hỗ trợ khách hàng: %s", str(e))
+            return []
+
+    @api.model
+    def _get_customer_types(self):
+        """Lấy danh sách loại khách hàng"""
+        try:
+            if 'loai_khach_hang' not in self.env:
+                return []
+            
+            LoaiKH = self.env['loai_khach_hang']
+            types = LoaiKH.search([])
+            
+            return [{'name': t.name, 'mo_ta': t.mo_ta or ''} for t in types]
+        except Exception as e:
+            _logger.error("Không thể truy vấn loại khách hàng: %s", str(e))
+            return []
+
+    # ==================== KẾT THÚC PHẦN THÊM MỚI ====================
+
     @api.model
     def _build_system_prompt(self, erp_context):
         """Xây dựng system prompt với dữ liệu ERP."""
@@ -497,6 +626,31 @@ Tổng số văn bản: {cust.get('total', 0)}
 {json.dumps(erp_context['customer_requests'][:10], ensure_ascii=False, indent=2)}
 """
 
+        # THÊM MỚI: Thêm dữ liệu khách hàng vào prompt
+        if erp_context.get('customers'):
+            prompt += f"""
+=== KHÁCH HÀNG ({len(erp_context['customers'])} khách hàng) ===
+{json.dumps(erp_context['customers'][:15], ensure_ascii=False, indent=2)}
+"""
+
+        if erp_context.get('potential_customers'):
+            prompt += f"""
+=== KHÁCH HÀNG TIỀM NĂNG ({len(erp_context['potential_customers'])} khách hàng) ===
+{json.dumps(erp_context['potential_customers'][:10], ensure_ascii=False, indent=2)}
+"""
+
+        if erp_context.get('customer_supports'):
+            prompt += f"""
+=== HỖ TRỢ KHÁCH HÀNG ({len(erp_context['customer_supports'])} yêu cầu) ===
+{json.dumps(erp_context['customer_supports'][:10], ensure_ascii=False, indent=2)}
+"""
+
+        if erp_context.get('customer_types'):
+            prompt += f"""
+=== LOẠI KHÁCH HÀNG ===
+{json.dumps(erp_context['customer_types'], ensure_ascii=False, indent=2)}
+"""
+
         return prompt
 
     @api.model
@@ -540,7 +694,6 @@ Tổng số văn bản: {cust.get('total', 0)}
 
 {chr(10).join(emp_list)}"""
             else:
-                # Kiểm tra xem có bảng nhan_vien không
                 try:
                     if 'nhan_vien' in self.env:
                         count = self.env['nhan_vien'].search_count([])
@@ -565,7 +718,6 @@ Tổng số văn bản: {cust.get('total', 0)}
 - Văn bản đến: {stats.get('van_ban_den_thang_nay', 0)}
 - Văn bản đi: {stats.get('van_ban_di_thang_nay', 0)}"""
 
-            # Thêm danh sách văn bản gần đây
             if monthly.get('van_ban_den') and len(monthly.get('van_ban_den', [])) > 0:
                 response += "\n\n**Văn bản đến gần đây:**\n"
                 for doc in monthly['van_ban_den'][:5]:
@@ -590,8 +742,107 @@ Tổng số văn bản: {cust.get('total', 0)}
 {chr(10).join(doc_list)}"""
             return "✅ Không có văn bản nào quá hạn xử lý."
         
+        # ==================== THÊM MỚI: XỬ LÝ KHÁCH HÀNG ====================
+        
+        # Kiểm tra câu hỏi về khách hàng
+        if 'khách hàng' in question_lower or 'khach hang' in question_lower:
+            customers = erp_context.get('customers', [])
+            
+            if customers:
+                cust_list = []
+                for c in customers[:10]:
+                    cust_info = f"- {c.get('ten_khach_hang', '')}"
+                    if c.get('ma_khach_hang'):
+                        cust_info += f" (Mã: {c.get('ma_khach_hang')})"
+                    if c.get('loai_khach'):
+                        cust_info += f" - {c.get('loai_khach')}"
+                    if c.get('dien_thoai'):
+                        cust_info += f"\n  📞 {c.get('dien_thoai')}"
+                    if c.get('email'):
+                        cust_info += f"\n  📧 {c.get('email')}"
+                    cust_list.append(cust_info)
+                
+                return f"""🏢 **DANH SÁCH KHÁCH HÀNG** ({len(customers)} khách hàng)
+
+{chr(10).join(cust_list)}"""
+            else:
+                return "📋 **KHÔNG CÓ DỮ LIỆU KHÁCH HÀNG**\n\nChưa có khách hàng nào trong hệ thống."
+        
+        # Kiểm tra câu hỏi về khách hàng tiềm năng
+        if 'tiềm năng' in question_lower or 'tiem nang' in question_lower:
+            potentials = erp_context.get('potential_customers', [])
+            
+            if potentials:
+                pot_list = []
+                for p in potentials[:10]:
+                    pot_info = f"- {p.get('khach_hang', 'Khách hàng mới')}"
+                    if p.get('giai_doan'):
+                        pot_info += f"\n  📍 Giai đoạn: {p.get('giai_doan')}"
+                    if p.get('doanh_thu_tiem_nang'):
+                        pot_info += f"\n  💰 Doanh thu tiềm năng: {p.get('doanh_thu_tiem_nang'):,.0f} VNĐ"
+                    if p.get('ngay_du_kien'):
+                        pot_info += f"\n  📅 Dự kiến ký: {p.get('ngay_du_kien')}"
+                    pot_list.append(pot_info)
+                
+                return f"""🎯 **KHÁCH HÀNG TIỀM NĂNG** ({len(potentials)} khách hàng)
+
+{chr(10).join(pot_list)}"""
+            else:
+                return "🎯 **KHÔNG CÓ KHÁCH HÀNG TIỀM NĂNG**\n\nHãy thêm khách hàng tiềm năng vào hệ thống."
+        
+        # Kiểm tra câu hỏi về hỗ trợ khách hàng
+        if 'hỗ trợ' in question_lower or 'ho tro' in question_lower:
+            supports = erp_context.get('customer_supports', [])
+            
+            if supports:
+                pending = sum(1 for s in supports if 'Đang chờ' in s.get('trang_thai', ''))
+                in_progress = sum(1 for s in supports if 'Đang xử lý' in s.get('trang_thai', ''))
+                resolved = sum(1 for s in supports if 'Đã giải quyết' in s.get('trang_thai', ''))
+                
+                response = f"""🆘 **HỖ TRỢ KHÁCH HÀNG**
+
+**Thống kê:**
+- Đang chờ: {pending}
+- Đang xử lý: {in_progress}
+- Đã giải quyết: {resolved}
+- Tổng số: {len(supports)}
+
+**Danh sách gần đây:**
+"""
+                for s in supports[:5]:
+                    response += f"\n- {s.get('khach_hang', '')}: {s.get('trang_thai', '')} - {s.get('phuong_thuc', '')}"
+                    if s.get('diem_danh_gia') and s.get('diem_danh_gia') > 0:
+                        response += f" (⭐ {s.get('diem_danh_gia')}/5)"
+                
+                return response
+            else:
+                return "🆘 **KHÔNG CÓ YÊU CẦU HỖ TRỢ**\n\nChưa có yêu cầu hỗ trợ khách hàng nào."
+        
+        # Kiểm tra câu hỏi về loại khách hàng
+        if 'loại khách hàng' in question_lower or 'loai khach hang' in question_lower:
+            types = erp_context.get('customer_types', [])
+            
+            if types:
+                type_list = []
+                for t in types:
+                    type_info = f"- {t.get('name', '')}"
+                    if t.get('mo_ta'):
+                        type_info += f": {t.get('mo_ta')}"
+                    type_list.append(type_info)
+                
+                return f"""🏷️ **LOẠI KHÁCH HÀNG** ({len(types)} loại)
+
+{chr(10).join(type_list)}"""
+            else:
+                return "🏷️ **KHÔNG CÓ LOẠI KHÁCH HÀNG**\n\nHãy tạo loại khách hàng trước."
+        
+        # ==================== KẾT THÚC PHẦN THÊM MỚI ====================
+        
         # Câu hỏi thông thường
         stats = erp_context.get('statistics', {})
+        customers_count = len(erp_context.get('customers', []))
+        supports_count = len(erp_context.get('customer_supports', []))
+        
         return f"""🤖 **Xin chào! Tôi là trợ lý AI.**
 
 Câu hỏi của bạn: *"{question}"*
@@ -601,12 +852,18 @@ Câu hỏi của bạn: *"{question}"*
 - Hôm nay: {erp_context.get('today', '')}
 - Tháng: {erp_context.get('month', '')}
 - Tổng văn bản: {stats.get('total_van_ban_den', 0) + stats.get('total_van_ban_di', 0)}
+- Tổng khách hàng: {customers_count}
+- Yêu cầu hỗ trợ: {supports_count}
 
 💡 **Tôi có thể giúp bạn:**
 - Hỏi "thống kê" để xem số liệu tổng quan
 - Hỏi "nhân viên" để xem danh sách nhân viên
 - Hỏi "văn bản" để xem danh sách văn bản
 - Hỏi "văn bản quá hạn" để xem các văn bản cần xử lý
+- Hỏi "khách hàng" để xem danh sách khách hàng
+- Hỏi "hỗ trợ khách hàng" để xem các yêu cầu hỗ trợ
+- Hỏi "khách hàng tiềm năng" để xem cơ hội kinh doanh
+- Hỏi "loại khách hàng" để xem các loại khách hàng
 
 (Đang chạy chế độ demo. Để có câu trả lời thông minh từ AI thực, vui lòng cấu hình API key)"""
 
